@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Budgetly — Connexion</title>
+
+  <!-- Police Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
+  <style>
+    /* =====================================================
+       VARIABLES CSS — couleurs et tailles réutilisables
+       ===================================================== */
+    :root {
+      --bleu:       #2563EB;
+      --bleu-hover: #1D4ED8;  
+      --rouge:      #EF4444;
+      --gris-100:   #F1F5F9;
+      --gris-200:   #E2E8F0;
+      --gris-400:   #94A3B8;
+      --gris-700:   #334155;
+      --gris-900:   #0F172A;
+      --blanc:      #FFFFFF;
+      --rayon:      10px;
+      --rayon-lg:   16px;
+      --police:     'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--police);
+      background: var(--gris-100);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* =====================================================
+       CARTE PRINCIPALE
+       ===================================================== */
+    .carte-login {
+      width: 100%;
+      max-width: 420px;
+      background: var(--blanc);
+      border-radius: var(--rayon-lg);
+      border: 1px solid var(--gris-200);
+      padding: 2.5rem 2rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,.07);
+      animation: apparition .4s ease both;
+    }
+
+    @keyframes apparition {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* =====================================================
+       EN-TÊTE : LOGO + NOM
+       ===================================================== */
+    .entete {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.75rem;
+    }
+
+    .logo-icone {
+      width: 40px; height: 40px;
+      background: var(--bleu);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-icone svg {
+      width: 20px; height: 20px;
+      stroke: white; fill: none;
+      stroke-width: 2; stroke-linecap: round;
+    }
+
+    .logo-nom    { font-size: 20px; font-weight: 700; color: var(--gris-900); }
+    .logo-slogan { font-size: 11px; color: var(--gris-400); margin-top: 1px; }
+
+    /* =====================================================
+       TITRE DU FORMULAIRE
+       ===================================================== */
+    .titre-form { font-size: 22px; font-weight: 700; color: var(--gris-900); margin-bottom: 4px; }
+    .sous-titre { font-size: 13px; color: var(--gris-400); margin-bottom: 1.75rem; }
+
+    /* =====================================================
+       CHAMPS DE SAISIE
+       ===================================================== */
+    .champ-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gris-700);
+      margin-bottom: 6px;
+    }
+
+    /* Conteneur pour positionner l'icône à l'intérieur du champ */
+    .champ-wrap { position: relative; margin-bottom: 1rem; }
+
+    /* Icône positionnée à gauche à l'intérieur du champ */
+    .champ-icone {
+      position: absolute;
+      left: 12px; top: 50%;
+      transform: translateY(-50%);
+      width: 15px; height: 15px;
+      stroke: var(--gris-400); fill: none;
+      stroke-width: 1.75; stroke-linecap: round;
+      pointer-events: none;
+    }
+
+    .champ-input {
+      width: 100%;
+      background: var(--gris-100);
+      border: 1.5px solid var(--gris-200);
+      border-radius: var(--rayon);
+      /* padding-left: 38px pour ne pas chevaucher l'icône */
+      padding: 10px 14px 10px 38px;
+      font-size: 14px;
+      font-family: var(--police);
+      color: var(--gris-900);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+
+    /* Style focus : bordure bleue + ombre légère */
+    .champ-input:focus {
+      border-color: var(--bleu);
+      background: var(--blanc);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+    }
+
+    /* Style erreur : bordure rouge */
+    .champ-input.erreur {
+      border-color: var(--rouge);
+    }
+
+    /* Bouton oeil : voir/masquer le mot de passe */
+    .bouton-oeil {
+      position: absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      cursor: pointer;
+      color: var(--gris-400);
+      padding: 2px;
+      transition: color .2s;
+    }
+
+    .bouton-oeil:hover { color: var(--gris-700); }
+    .bouton-oeil svg {
+      width: 15px; height: 15px;
+      stroke: currentColor; fill: none; stroke-width: 1.75;
+    }
+
+    /* =====================================================
+       BOÎTE D'ERREUR
+       Cachée par défaut, affichée via JS quand erreur
+       ===================================================== */
+    .boite-erreur {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-radius: var(--rayon);
+      padding: 10px 14px;
+      margin-bottom: 1.25rem;
+      font-size: 13px;
+      color: #B91C1C;
+    }
+
+    .boite-erreur.visible { display: flex; }
+
+    .boite-erreur svg {
+      width: 15px; height: 15px; flex-shrink: 0;
+      stroke: #B91C1C; fill: none; stroke-width: 1.75;
+    }
+
+    /* =====================================================
+       BOUTON DE CONNEXION
+       ===================================================== */
+    .bouton-connexion {
+      width: 100%;
+      padding: 12px;
+      background: var(--bleu);
+      color: white;
+      border: none;
+      border-radius: var(--rayon);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--police);
+      cursor: pointer;
+      transition: background .2s, transform .15s, box-shadow .2s;
+      margin-top: .25rem;
+      box-shadow: 0 2px 12px rgba(37,99,235,.25);
+    }
+
+    .bouton-connexion:hover:not(:disabled) {
+      background: var(--bleu-hover);
+      transform: translateY(-1px);
+    }
+
+    .bouton-connexion:active:not(:disabled) { transform: translateY(0); }
+    .bouton-connexion:disabled { opacity: .65; cursor: not-allowed; }
+
+    /* Spinner de chargement (cercle qui tourne) */
+    .spinner {
+      display: none;
+      width: 17px; height: 17px;
+      border: 2px solid rgba(255,255,255,.35);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: rotation .65s linear infinite;
+      margin: 0 auto;
+    }
+
+    /* En mode chargement : cache le texte, montre le spinner */
+    .bouton-connexion.chargement .texte-btn { display: none; }
+    .bouton-connexion.chargement .spinner   { display: block; }
+
+    @keyframes rotation { to { transform: rotate(360deg); } }
+
+    /* =====================================================
+       PIED DE CARTE : lien inscription
+       ===================================================== */
+    .pied-carte {
+      text-align: center;
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--gris-200);
+      font-size: 13px;
+      color: var(--gris-400);
+    }
+
+    .pied-carte a {
+      color: var(--bleu);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .pied-carte a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <div class="carte-login">
+
+    <!-- ── En-tête logo ── -->
+    <div class="entete">
+      <div class="logo-icone">
+        <svg viewBox="0 0 18 18">
+          <path d="M2 9h14M9 2v14M4 5.5l5-3.5 5 3.5M4 12.5l5 3.5 5-3.5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-nom">Budgetly</div>
+        <div class="logo-slogan">Gestion budgétaire intelligente</div>
+      </div>
+    </div>
+
+    <!-- ── Titre ── -->
+    <div class="titre-form">Connexion</div>
+    <div class="sous-titre">Entrez vos identifiants pour accéder à votre compte</div>
+
+    <!-- ── Boîte d'erreur (cachée par défaut) ── -->
+    <div class="boite-erreur" id="boiteErreur">
+      <svg viewBox="0 0 16 16">
+        <circle cx="8" cy="8" r="6"/>
+        <path d="M8 5v3M8 11v.5"/>
+      </svg>
+      <span id="texteErreur">Erreur de connexion</span>
+    </div>
+
+    <!-- ── Formulaire ── -->
+    <form id="formulaireLogin" novalidate>
+
+      <!-- Champ email -->
+      <div>
+        <label class="champ-label" for="email">Adresse courriel</label>
+        <div class="champ-wrap">
+          <svg class="champ-icone" viewBox="0 0 16 16">
+            <rect x="2" y="4" width="12" height="9" rx="1.5"/>
+            <path d="M2 4l6 5 6-5"/>
+          </svg>
+          <input
+            type="email"
+            id="email"
+            class="champ-input"
+            placeholder="vous@email.com"
+            autocomplete="email"
+            required
+          />
+        </div>
+      </div>
+
+      <!-- Champ mot de passe -->
+      <div>
+        <label class="champ-label" for="motDePasse">Mot de passe</label>
+        <div class="champ-wrap">
+          <svg class="champ-icone" viewBox="0 0 16 16">
+            <rect x="3" y="7" width="10" height="7" rx="1.5"/>
+            <path d="M5 7V5a3 3 0 016 0v2"/>
+          </svg>
+          <input
+            type="password"
+            id="motDePasse"
+            class="champ-input"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            required
+          />
+          <!-- Bouton oeil pour voir/masquer -->
+          <button type="button" class="bouton-oeil" onclick="toggleMotDePasse()">
+            <svg id="iconeOeil" viewBox="0 0 16 16">
+              <path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/>
+              <circle cx="8" cy="8" r="2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bouton submit -->
+      <button type="submit" class="bouton-connexion" id="boutonConnexion">
+        <span class="texte-btn">Se connecter</span>
+        <div class="spinner"></div>
+      </button>
+
+    </form>
+
+    <!-- ── Lien inscription ── -->
+    <div class="pied-carte">
+      Pas encore de compte ?
+      <a href="register.html">Créer un compte</a>
+    </div>
+
+  </div>
+
+  <script>
+    /* =====================================================
+       URL DE BASE DU BACKEND SPRING BOOT
+       Si on change le port dans application.properties,
+       on change-le ici aussi.
+       ===================================================== */
+    const API_URL = 'http://localhost:8080/api';
+
+    /* =====================================================
+       TOGGLE MOT DE PASSE
+       Bascule entre "password" (masqué) et "text" (visible)
+       ===================================================== */
+    function toggleMotDePasse() {
+      const champ = document.getElementById('motDePasse');
+
+      if (champ.type === 'password') {
+        champ.type = 'text';
+        /* Icône "oeil barré" */
+        document.getElementById('iconeOeil').innerHTML =
+          `<path d="M2 2l12 12M6.5 6.5A3 3 0 0011.4 11M4.3 4.4C2.7 5.6 1.4 7 .8 8c1.5 2.5 4 5 7.2 5 1.2 0 2.4-.4 3.4-1"/>`;
+      } else {
+        champ.type = 'password';
+        /* Icône "oeil normal" */
+        document.getElementById('iconeOeil').innerHTML =
+          `<path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/>`;
+      }
+    }
+
+    /* =====================================================
+       AFFICHER / CACHER L'ERREUR
+       ===================================================== */
+    function afficherErreur(message) {
+      document.getElementById('texteErreur').textContent = message;
+      document.getElementById('boiteErreur').classList.add('visible');
+      document.getElementById('email').classList.add('erreur');
+      document.getElementById('motDePasse').classList.add('erreur');
+    }
+
+    function cacherErreur() {
+      document.getElementById('boiteErreur').classList.remove('visible');
+      document.getElementById('email').classList.remove('erreur');
+      document.getElementById('motDePasse').classList.remove('erreur');
+    }
+
+    /* =====================================================
+       SOUMISSION DU FORMULAIRE
+       Déclenché au clic sur "Se connecter"
+       ===================================================== */
+    document.getElementById('formulaireLogin').addEventListener('submit', async (e) => {
+
+      /* Empêche le rechargement de la page */
+      e.preventDefault();
+      cacherErreur();
+
+      const email      = document.getElementById('email').value.trim();
+      const motDePasse = document.getElementById('motDePasse').value.trim();
+      const bouton     = document.getElementById('boutonConnexion');
+
+      /* Validation : champs vides */
+      if (!email || !motDePasse) {
+        afficherErreur('Veuillez remplir tous les champs.');
+        return;
+      }
+
+      /* Passe le bouton en mode "chargement" (spinner) */
+      bouton.classList.add('chargement');
+      bouton.disabled = true;
+
+      try {
+        /* ── Appel API vers Spring Boot ──────────────────
+           POST /api/users/login
+           Corps JSON : { email, password }
+           Réponse attendue : { userId, name, email }
+           ─────────────────────────────────────────────── */
+        const reponse = await fetch(`${API_URL}/users/login`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ email: email, password: motDePasse })
+        });
+
+        const donnees = await reponse.json();
+
+        if (!reponse.ok) {
+          /* Erreur retournée par le backend (ex: mauvais mdp) */
+          afficherErreur(donnees.message || 'Email ou mot de passe incorrect.');
+          return;
+        }
+
+        /* ── Succès : sauvegarde des infos en session ────
+           sessionStorage = mémoire du navigateur pour cet onglet.
+           Ces valeurs seront lues par dashboard.html, budgets.html, etc.
+           ─────────────────────────────────────────────── */
+        sessionStorage.setItem('bs_userId', donnees.userId);
+        sessionStorage.setItem('bs_name',   donnees.name);
+        sessionStorage.setItem('bs_email',  donnees.email);
+
+        /* Redirige vers le tableau de bord */
+        window.location.href = 'dashboard.html';
+
+      } catch (erreur) {
+        /* Erreur réseau : le serveur n'est pas joignable */
+        afficherErreur(
+          'Impossible de contacter le serveur. ' +
+          'Vérifiez que Spring Boot est lancé sur le port 8080.'
+        );
+      } finally {
+        /* Toujours exécuté : remet le bouton en état normal */
+        bouton.classList.remove('chargement');
+        bouton.disabled = false;
+      }
+    });
+
+    /* Efface l'erreur dès que l'utilisateur recommence à taper */
+    document.getElementById('email').addEventListener('input', cacherErreur);
+    document.getElementById('motDePasse').addEventListener('input', cacherErreur);
+  </script>
+
+</body>
+</html>

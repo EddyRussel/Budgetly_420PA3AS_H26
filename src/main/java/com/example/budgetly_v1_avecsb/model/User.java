@@ -2,6 +2,7 @@ package com.example.budgetly_v1_avecsb.model;
 
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,17 +10,19 @@ import java.util.List;
 @Table(name = "users")
 @NoArgsConstructor
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Setter
     @Column(nullable = false)
     private String name;
 
+    @Setter
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Setter
     @Column(nullable = false)
     private String password;
 
@@ -39,7 +42,7 @@ public class User {
         this.password = password;
     }
 
-    // ── Méthodes métier ───────────────────────────────────
+
 
     public void addTransaction(Transaction t) {
         if (t == null)
@@ -54,7 +57,7 @@ public class User {
         transactions.remove(t);
     }
 
-    /** Calcule le solde total via polymorphisme (calculateImpact) */
+    // Calcule le solde total  (calculateImpact)
     public double getBalance() {
         double balance = 0;
         for (Transaction t : transactions) {
@@ -63,7 +66,7 @@ public class User {
         return balance;
     }
 
-    /** Retourne uniquement les dépenses */
+    //Retourne uniquement les dépenses
     public List<Transaction> getDepenses() {
         List<Transaction> result = new ArrayList<>();
         for (Transaction t : transactions) {
@@ -72,7 +75,7 @@ public class User {
         return result;
     }
 
-    /** Retourne uniquement les revenus */
+    // Retourne uniquement les revenus
     public List<Transaction> getRevenus() {
         List<Transaction> result = new ArrayList<>();
         for (Transaction t : transactions) {
@@ -81,22 +84,20 @@ public class User {
         return result;
     }
 
-    /** Vérifie si le solde est positif */
+    // Vérifie si le solde est positif
     public boolean isSolvent() {
         return getBalance() >= 0;
     }
 
-    // ── Getters / Setters ─────────────────────────────────
+    // Getters / Setters
 
     public int getId() { return id; }
 
     public String getName() { return name; }
 
     public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
 
     public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
 
     public List<Transaction> getTransactions() { return transactions; }
 
@@ -113,6 +114,6 @@ public class User {
 //orphanRemoval = true — si on retire une transaction de la liste, elle est supprimée de la BD automatiquement
 //unique = true sur email — deux users ne peuvent pas avoir le même email
 
-//password ajouté — indispensable pour la connexion, ta page login en a besoin. Plus tard on le hashera avec BCrypt.
 
-//t.setUser(this) dans addTransaction —  Sans ça, JPA ne sait pas à quel user appartient la transaction et ne sauvegarde pas la relation en base.
+
+//t.setUser(this) dans addTransaction —  Sans ça JPA ne sait pas à quel user appartient la transaction et ne sauvegarde pas la relation en base.

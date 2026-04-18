@@ -20,10 +20,9 @@ public class Depense extends Transaction {
 }
 
 
-//@DiscriminatorValue — c'est ce qui remplit la colonne type dans la table transactions.
-// Quand on cré un Revenu, JPA écrit automatiquement "REVENU" dans cette colonne.
-// Quand on relit depuis la base, JPA sait recréer le bon objet.
+//@DiscriminatorValue — c'est ce qui remplit la colonne type dans la table transactions
+// Quand on cré un Revenu, JPA écrit automatiquement "REVENU" dans cette colonne
 
-//@NoArgsConstructor — requis par JPA, comme pour toutes les entités.
+//@NoArgsConstructor — requis par JPA, comme pour toutes les entités
 
-//id  géré par MySQL automatiquement, comme dans Transaction.
+//id géré par MySQL automatiquement, comme dans Transaction

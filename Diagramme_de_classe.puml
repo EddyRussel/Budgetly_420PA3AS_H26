@@ -1,0 +1,133 @@
+@startuml
+enum com.example.budgetly_v1_avecsb.model.CategoryType {
++  REVENU
++  DEPENSE
+}
+
+class com.example.budgetly_v1_avecsb.model.Depense {
++ double calculateImpact()
+}
+
+class com.example.budgetly_v1_avecsb.model.Budget {
+- int id
+- double maxAmount
+- double currentAmount
+- Category category
+- User user
+- String period
++ void addExpense(double)
++ boolean isExceeded()
++ double getRemainingAmount()
++ double getExceededAmount()
++ double getUsagePercent()
++ boolean isNearLimit()
++ void reset()
++ int getId()
++ double getMaxAmount()
++ void setMaxAmount(double)
++ double getCurrentAmount()
++ void setCurrentAmount(double)
++ Category getCategory()
++ User getUser()
++ void setUser(User)
++ String getPeriod()
++ void setPeriod(String)
++ String toString()
+}
+
+
+class com.example.budgetly_v1_avecsb.model.Report {
++ {static} double getTotalIncome(List<Transaction>)
++ {static} double getTotalExpense(List<Transaction>)
++ {static} double getNetBalance(List<Transaction>)
++ {static} Map<Category,Double> getExpensesByCategory(List<Transaction>)
++ {static} List<Transaction> filterByDate(LocalDate,LocalDate,List<Transaction>)
++ {static} List<Transaction> getMonthlyReport(Month,List<Transaction>)
++ {static} List<Transaction> getMonthlyReport(Month,int,List<Transaction>)
++ {static} List<Transaction> getDailyReport(LocalDate,List<Transaction>)
++ {static} double getMonthlyExpense(Month,List<Transaction>)
++ {static} double getMonthlyIncome(Month,List<Transaction>)
++ {static} Category getTopSpendingCategory(List<Transaction>)
++ {static} double getSavingsRate(List<Transaction>)
+}
+
+class com.example.budgetly_v1_avecsb.model.PredictionService {
++ {static} double calculateDailyAverage(List<Transaction>)
++ {static} int predictRemainingDays(List<Transaction>,double)
++ {static} LocalDate predictBreakDate(List<Transaction>,double)
++ {static} boolean shouldAlert(List<Transaction>,double,int)
+}
+
+class com.example.budgetly_v1_avecsb.model.User {
+- int id
+- String name
+- String email
+- String password
+- List<Transaction> transactions
++ void addTransaction(Transaction)
++ void removeTransaction(Transaction)
++ double getBalance()
++ List<Transaction> getDepenses()
++ List<Transaction> getRevenus()
++ boolean isSolvent()
++ int getId()
++ String getName()
++ String getEmail()
++ String getPassword()
++ List<Transaction> getTransactions()
++ String toString()
+}
+
+
+class com.example.budgetly_v1_avecsb.model.Revenu {
++ double calculateImpact()
+}
+
+abstract class com.example.budgetly_v1_avecsb.model.Transaction {
+# int id
+# double amount
+# LocalDate date
+# String description
+# Category category
+# User user
++ {abstract}double calculateImpact()
++ boolean isRevenu()
++ boolean isDepense()
++ boolean isInCategory(Category)
++ int getId()
++ double getAmount()
++ LocalDate getDate()
++ String getDescription()
++ void setDescription(String)
++ Category getCategory()
++ User getUser()
++ void setUser(User)
++ String toString()
+}
+
+
+class com.example.budgetly_v1_avecsb.model.Category {
+- int id
+- String name
+- CategoryType type
++ boolean isExpense()
++ boolean isIncome()
++ int getId()
++ String getName()
++ void setName(String)
++ CategoryType getType()
++ String toString()
+}
+
+
+
+User "1" *- "0..*" Transaction : possède >
+Transaction "0..*" -> "1" Category : classée dans >
+Budget "0..*" --> "1" Category : cible >
+Report ..> Transaction : <<use>>
+PredictionService .> Transaction : <<use>>
+Category "1" -> "1" CategoryType : est de type >
+Transaction <|-- Depense
+Transaction <|-- Revenu
+User "1" *- "0..*" Budget : possède >
+@enduml

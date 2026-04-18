@@ -7,10 +7,8 @@ public final class PredictionService {
 
     private PredictionService() {}
 
-    /**
-     * Calcule la dépense moyenne journalière sur les N derniers jours
-     * (plus fiable qu'une seule date)
-     */
+    //Calcule la dépense moyenne journalière sur les N derniers jours
+
     public static double calculateDailyAverage(List<Transaction> transactions) {
         if (transactions == null || transactions.isEmpty()) return 0;
 
@@ -27,9 +25,8 @@ public final class PredictionService {
         return totalExpense / nbJours;
     }
 
-    /**
-     * Prédit le nombre de jours restants avant épuisement du solde
-     */
+    //Prédit le nombre de jours restants avant épuisement du solde
+
     public static int predictRemainingDays(List<Transaction> transactions, double currentBalance) {
         if (currentBalance <= 0) return 0;
 
@@ -39,9 +36,8 @@ public final class PredictionService {
         return (int) (currentBalance / dailyAverage);
     }
 
-    /**
-     * Retourne la date estimée d'épuisement du budget
-     */
+    // Retourne la date estimée d'épuisement du budget
+
     public static LocalDate predictBreakDate(List<Transaction> transactions, double currentBalance) {
         int days = predictRemainingDays(transactions, currentBalance);
 
@@ -49,9 +45,8 @@ public final class PredictionService {
         return LocalDate.now().plusDays(days);
     }
 
-    /**
-     * Vérifie si une alerte doit être déclenchée (moins de N jours restants)
-     */
+    // Vérifie si une alerte doit être déclenchée (moins de N jours restants)
+
     public static boolean shouldAlert(List<Transaction> transactions, double currentBalance, int seuilJours) {
         int remaining = predictRemainingDays(transactions, currentBalance);
         return remaining != Integer.MAX_VALUE && remaining <= seuilJours;

@@ -44,44 +44,44 @@ public class Budget {
 
     // ── Méthodes métier ───────────────────────────────────
 
-    /** Ajoute une dépense au budget */
+    // Ajoute une dépense au budget
     public void addExpense(double amount) {
         if (amount <= 0)
             throw new IllegalArgumentException("Amount must be positive");
         this.currentAmount += amount;
     }
 
-    /** Vérifie si le budget est dépassé */
+    // Vérifie si le budget est dépassé
     public boolean isExceeded() {
         return currentAmount > maxAmount;
     }
 
-    /** Montant restant (négatif si dépassé) */
+    // Montant restant (négatif si dépassé)
     public double getRemainingAmount() {
         return maxAmount - currentAmount;
     }
 
-    /** Montant du dépassement (0 si pas dépassé) */
+    // Montant du dépassement (0 si pas dépassé)
     public double getExceededAmount() {
         return currentAmount > maxAmount ? currentAmount - maxAmount : 0;
     }
 
-    /** Pourcentage utilisé (peut dépasser 100%) */
+    // Pourcentage utilisé (peut dépasser 100%)
     public double getUsagePercent() {
         return maxAmount > 0 ? (currentAmount / maxAmount) * 100 : 0;
     }
 
-    /** Vérifie si le budget approche la limite (>= 80%) */
+    // Vérifie si le budget approche la limite (>= 80%) */
     public boolean isNearLimit() {
         return getUsagePercent() >= 80 && !isExceeded();
     }
 
-    /** Remet le budget à zéro (pour un nouveau mois) */
+    // Remet le budget à zéro (pour un nouveau mois) */
     public void reset() {
         this.currentAmount = 0;
     }
 
-    // ── Getters / Setters ─────────────────────────────────
+    //  Getters / Setters
 
     public int getId() { return id; }
 
@@ -109,11 +109,10 @@ public class Budget {
 }
 
 
-//@ManyToOne sur user — un budget appartient à un utilisateur. Sans ça, impossible de savoir à qui appartient le budget en base de données.
-//period ajouté — indispensable pour distinguer le budget d'avril du budget de mars. On stocke une simple chaîne "2026-04", c'est léger et facile à filtrer.
+//@ManyToOne sur user — un budget appartient à un utilisateur
+//period
+//Validation dans addExpense — on vérifie que le montant est positif avant de l'ajouter
 
-//Validation dans addExpense — on vérifie que le montant est positif avant de l'ajouter, pour éviter des bugs silencieux.
-
-//getUsagePercent() — retourne le % utilisé, directement utile pour les barres de progression du frontend
+//getUsagePercent() — retourne le % utilisé,  utile pour les barres de progression du frontend
 //isNearLimit() — détecte le seuil d'alerte à 80%, utilisé dans le frontend pour afficher les badges orange
-//reset() — remet currentAmount à 0 pour un nouveau mois, tu en auras besoin quand tu géreras les périodes
+//reset() — remet currentAmount à 0 pour un nouveau mois

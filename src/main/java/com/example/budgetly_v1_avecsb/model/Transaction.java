@@ -44,27 +44,27 @@ public abstract class Transaction {
         this.category = category;
     }
 
-    // ── Méthode abstraite ─────────────────────────────────
+
     public abstract double calculateImpact();
 
 
 
-    /** Vérifie si la transaction est un revenu */
+    // Vérifie si la transaction est un revenu
     public boolean isRevenu() {
         return this instanceof Revenu;
     }
 
-    /** Vérifie si la transaction est une dépense */
+    // Vérifie si la transaction est une dépense
     public boolean isDepense() {
         return this instanceof Depense;
     }
 
-    /** Vérifie si la transaction appartient à une catégorie donnée */
+    // Vérifie si la transaction appartient à une catégorie donnée
     public boolean isInCategory(Category c) {
         return this.category.getId() == c.getId();
     }
 
-    // ── Getters / Setters ─────────────────────────────────
+    // Getters / Setters
 
     public int getId() { return id; }
 

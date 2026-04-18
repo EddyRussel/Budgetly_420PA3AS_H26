@@ -29,17 +29,17 @@ public class Category {
 
 
 
-    /** Vérifie si c'est une catégorie de dépense */
+    //Vérifie si c'est une catégorie de dépense
     public boolean isExpense() {
         return this.type == CategoryType.DEPENSE;
     }
 
-    /** Vérifie si c'est une catégorie de revenu */
+    // Vérifie si c'est une catégorie de revenu
     public boolean isIncome() {
         return this.type == CategoryType.REVENU;
     }
 
-    // ── Getters / Setters ─────────────────────────────────
+    // Getters / Setters
 
     public int getId() { return id; }
 
@@ -61,4 +61,4 @@ public class Category {
 //@Enumerated(EnumType.STRING) — stocke "REVENU" ou "DEPENSE" en texte dans la BD (plus lisible que des chiffres)
 //@Column(nullable = false) — empêche les valeurs nulles en base
 
-//@NoArgsConstructor (Lombok) — JPA exige un constructeur vide, Lombok le génère pour toi.
+//@NoArgsConstructor (Lombok) — JPA exige un constructeur vide, Lombok le génère

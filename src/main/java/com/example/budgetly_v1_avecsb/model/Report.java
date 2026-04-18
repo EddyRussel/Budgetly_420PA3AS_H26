@@ -11,7 +11,7 @@ public final class Report {
 
     private Report() {}
 
-    /** Total des revenus */
+    // Total des revenus
     public static double getTotalIncome(List<Transaction> transactions) {
         double total = 0;
         for (Transaction t : transactions) {
@@ -23,7 +23,7 @@ public final class Report {
         return total;
     }
 
-    /** Total des dépenses (valeur positive) */
+    // Total des dépenses (valeur positive)
     public static double getTotalExpense(List<Transaction> transactions) {
         double total = 0;
         for (Transaction t : transactions) {
@@ -35,12 +35,12 @@ public final class Report {
         return Math.abs(total);
     }
 
-    /** Solde net = revenus - dépenses */
+    //Solde net = revenus - dépenses
     public static double getNetBalance(List<Transaction> transactions) {
         return getTotalIncome(transactions) - getTotalExpense(transactions);
     }
 
-    /** Dépenses regroupées par catégorie */
+    //Dépenses regroupées par catégorie
     public static Map<Category, Double> getExpensesByCategory(List<Transaction> transactions) {
         Map<Category, Double> map = new HashMap<>();
         for (Transaction t : transactions) {
@@ -55,7 +55,7 @@ public final class Report {
         return map;
     }
 
-    /** Filtrage par plage de dates (inclusive) */
+    // Filtrage par plage de dates (inclusive)
     public static List<Transaction> filterByDate(LocalDate start, LocalDate end,
                                                  List<Transaction> transactions) {
         List<Transaction> result = new ArrayList<>();
@@ -67,7 +67,7 @@ public final class Report {
         return result;
     }
 
-    /** Transactions d'un mois donné */
+    // Transactions d'un mois donné
     public static List<Transaction> getMonthlyReport(Month month,
                                                      List<Transaction> transactions) {
         List<Transaction> filtered = new ArrayList<>();
@@ -78,7 +78,7 @@ public final class Report {
         return filtered;
     }
 
-    /** Transactions d'un mois + année précis */
+    // Transactions d'un mois + année précis
     public static List<Transaction> getMonthlyReport(Month month, int year,
                                                      List<Transaction> transactions) {
         List<Transaction> filtered = new ArrayList<>();
@@ -89,7 +89,7 @@ public final class Report {
         return filtered;
     }
 
-    /** Transactions d'un jour précis */
+    // Transactions d'un jour précis
     public static List<Transaction> getDailyReport(LocalDate date,
                                                    List<Transaction> transactions) {
         List<Transaction> filtered = new ArrayList<>();
@@ -100,17 +100,17 @@ public final class Report {
         return filtered;
     }
 
-    /** Dépenses d'un mois donné */
+    //Dépenses d'un mois donné
     public static double getMonthlyExpense(Month month, List<Transaction> transactions) {
         return getTotalExpense(getMonthlyReport(month, transactions));
     }
 
-    /** Revenus d'un mois donné */
+    // Revenus d'un mois donné
     public static double getMonthlyIncome(Month month, List<Transaction> transactions) {
         return getTotalIncome(getMonthlyReport(month, transactions));
     }
 
-    /** Catégorie où on dépense le plus */
+    // Catégorie où on dépense le plus
     public static Category getTopSpendingCategory(List<Transaction> transactions) {
         Map<Category, Double> map = getExpensesByCategory(transactions);
         Category top    = null;
@@ -124,7 +124,7 @@ public final class Report {
         return top;
     }
 
-    /** Taux d'épargne en % (revenus - dépenses) / revenus */
+    //Taux d'épargne en % (revenus - dépenses) / revenus
     public static double getSavingsRate(List<Transaction> transactions) {
         double income = getTotalIncome(transactions);
         if (income == 0) return 0;
