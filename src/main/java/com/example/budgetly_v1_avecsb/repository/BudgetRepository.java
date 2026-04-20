@@ -15,7 +15,7 @@ import java.util.Optional;
 //findByUserIdAndDateBetween  >> SELECT * FROM transactions
 //                               WHERE user_id = ? AND date BETWEEN ? AND ?
 
-//Pour les requêtes complexes, on utilise @Query avec du JPQL (c'est comme du SQL mais avec les noms de classes Java)
+//Pour les requêtes complexes on utilise @Query avec du JPQL (c'est comme du SQL mais avec les noms de classes Java)
 
 
 

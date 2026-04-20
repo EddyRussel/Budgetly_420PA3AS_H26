@@ -93,11 +93,9 @@ public abstract class Transaction {
 //SINGLE_TABLE qui met Revenu et Depense dans une seule table avec une colonne type
 // qui vaut "REVENU" ou "DEPENSE".
 
-//@ManyToOne sur category et user :
+//@ManyToOne sur category et user
 
-//@JoinColumn(name = "category_id") — crée une clé étrangère vers la table categories
-//@JoinColumn(name = "user_id") — crée une clé étrangère vers la table users
+//@JoinColumn(name = "category_id")  crée une clé étrangère vers la table categories
+//@JoinColumn(name = "user_id") crée une clé étrangère vers la table users
 
 
-
-//id — MySQL le gère automatiquement.

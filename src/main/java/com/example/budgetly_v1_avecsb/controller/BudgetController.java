@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+//ResponseEntity.ok = Réponse avec statut 200 OK et un objet en JSON
+
 @RestController
 @RequestMapping("/api/budgets")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*") //Notre frontend tourne sur le port 5500 avec Live Server et notre backend sur le port 8080.
 public class BudgetController {
 
     private final BudgetService budgetService;

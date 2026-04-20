@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Budgetly — Tableau de bord</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="css/budgetly.css" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ── Sidebar (injectée par JS) ── -->
+  <aside class="sidebar" id="sidebar-slot"></aside>
+
+  <!-- ── Contenu principal ── -->
+  <div class="contenu-principal">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div>
+        <div class="topbar-titre">Tableau de bord</div>
+        <div class="topbar-sous-titre" id="topbar-date">Chargement...</div>
+      </div>
+      <div class="topbar-droite">
+        <!-- Notif -->
+        <div class="btn-icone" title="Alertes">
+          <svg viewBox="0 0 16 16"><path d="M8 1a5 5 0 015 5v3l1 2H2l1-2V6a5 5 0 015-5zM6 13a2 2 0 004 0"/></svg>
+          <span class="notif-point" id="notif-point" style="display:none;"></span>
+        </div>
+        <!-- Bouton ajouter transaction -->
+        <button class="btn-vert" onclick="window.location.href='transactions.html'">
+          <svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12"/></svg>
+          Ajouter
+        </button>
+      </div>
+    </header>
+
+    <!-- Contenu -->
+    <div class="page-contenu">
+
+      <!-- ── Carte solde hero ── -->
+      <div id="hero-solde" class="mb-4 p-4 rounded-3 animer" style="
+        background: linear-gradient(135deg, #1A2332 0%, #2D4A1E 60%, #6B8F1A 100%);
+        color: white;
+        position: relative;
+        overflow: hidden;
+      ">
+        <!-- Cercle déco -->
+        <div style="
+          position: absolute; width: 250px; height: 250px;
+          border-radius: 50%; background: rgba(255,255,255,.05);
+          top: -80px; right: -50px;
+        "></div>
+
+        <div style="position: relative; z-index: 1;">
+          <div style="font-size:12px; color:rgba(255,255,255,.6); margin-bottom:6px;">
+            Solde disponible
+          </div>
+          <div id="solde-valeur" style="font-size:40px; font-weight:700; font-family:'DM Mono',monospace;">
+            Chargement...
+          </div>
+          <div style="display:flex; gap:16px; margin-top:16px; flex-wrap:wrap;">
+            <div style="background:rgba(255,255,255,.1); border-radius:8px; padding:8px 16px;">
+              <div style="font-size:10px; color:rgba(255,255,255,.5);">Revenus</div>
+              <div id="hero-revenus" style="font-size:16px; font-weight:700; color:#86efac;">—</div>
+            </div>
+            <div style="background:rgba(255,255,255,.1); border-radius:8px; padding:8px 16px;">
+              <div style="font-size:10px; color:rgba(255,255,255,.5);">Dépenses</div>
+              <div id="hero-depenses" style="font-size:16px; font-weight:700; color:#fca5a5;">—</div>
+            </div>
+            <div style="background:rgba(255,255,255,.1); border-radius:8px; padding:8px 16px;">
+              <div style="font-size:10px; color:rgba(255,255,255,.5);">Jours restants</div>
+              <div id="hero-jours" style="font-size:16px; font-weight:700; color:#fde68a;">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 4 Cartes ── -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-xl-3">
+          <div class="kpi-carte animer">
+            <div class="kpi-icone" style="background:var(--vert-clair); color:var(--vert);">
+              <svg viewBox="0 0 16 16"><path d="M8 14V2M3 7l5-5 5 5"/></svg>
+            </div>
+            <div class="kpi-label">Revenus du mois</div>
+            <div class="kpi-valeur montant-pos" id="kpi-revenus">—</div>
+            <div class="kpi-tendance" style="color:var(--gris-400);">Total encaissé</div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3">
+          <div class="kpi-carte animer">
+            <div class="kpi-icone" style="background:var(--rouge-clair); color:var(--rouge);">
+              <svg viewBox="0 0 16 16"><path d="M8 2v12M3 9l5 5 5-5"/></svg>
+            </div>
+            <div class="kpi-label">Dépenses du mois</div>
+            <div class="kpi-valeur montant-neg" id="kpi-depenses">—</div>
+            <div class="kpi-tendance" style="color:var(--gris-400);">Total dépensé</div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3">
+          <div class="kpi-carte animer">
+            <div class="kpi-icone" style="background:var(--orange-clair); color:var(--orange);">
+              <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
+            </div>
+            <div class="kpi-label">Jours restants</div>
+            <div class="kpi-valeur" id="kpi-jours" style="color:var(--orange);">—</div>
+            <div class="kpi-tendance" style="color:var(--gris-400);">Avant épuisement</div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3">
+          <div class="kpi-carte animer">
+            <div class="kpi-icone" style="background:#EDE9FE; color:#7C3AED;">
+              <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+            </div>
+            <div class="kpi-label">Dépense moy./jour</div>
+            <div class="kpi-valeur" id="kpi-moyenne" style="color:#7C3AED;">—</div>
+            <div class="kpi-tendance" style="color:var(--gris-400);">30 derniers jours</div>
+          </div>
+        </div>
+      </div>
+
+      <!--  Graphique + transactions récentes  -->
+      <div class="row g-3 mb-4">
+
+        <!-- Transactions récentes -->
+        <div class="col-xl-7">
+          <div class="carte animer">
+            <div class="carte-entete">
+              <div>
+                <div class="carte-titre">Transactions récentes</div>
+                <div class="carte-sous-titre">Dernières opérations</div>
+              </div>
+              <a href="transactions.html" class="carte-lien">Toutes →</a>
+            </div>
+            <div id="liste-transactions">
+              <!-- Rempli par JS -->
+              <div class="etat-vide">
+                <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="24" cy="24" r="20"/></svg>
+                <p>Chargement...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Budgets critiques -->
+        <div class="col-xl-5">
+          <div class="carte animer">
+            <div class="carte-entete">
+              <div>
+                <div class="carte-titre">Budgets du mois</div>
+                <div class="carte-sous-titre">Suivi par catégorie</div>
+              </div>
+              <a href="budgets.html" class="carte-lien">Gérer →</a>
+            </div>
+            <div class="carte-corps" id="liste-budgets">
+              <p style="font-size:13px; color:var(--gris-400);">Chargement...</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Alertes prévisions ── -->
+      <div id="section-alertes" class="animer" style="display:none;">
+        <div class="carte">
+          <div class="carte-entete">
+            <div class="carte-titre">⚠️ Alertes & Prévisions</div>
+          </div>
+          <div class="carte-corps" id="liste-alertes"></div>
+        </div>
+      </div>
+
+    </div><!-- /page-contenu -->
+  </div><!-- /contenu-principal -->
+</div><!-- /app-layout -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/sidebar.js"></script>
+
+
+
+
+
+
+
+
+<script>
+ 
+
+  /* Injecte la sidebar avec "dashboard" comme page active */
+  injecterSidebar('dashboard');
+
+  const user = getUser();
+
+  /* Date du jour */
+  const dateAujourdhui = new Date().toLocaleDateString('fr-CA', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+  document.getElementById('topbar-date').textContent = dateAujourdhui;
+
+  /* ── Formater un montant en dollars canadiens ── */
+  function fmt(montant) {
+    return Math.abs(montant).toLocaleString('fr-CA', {
+      minimumFractionDigits: 2, maximumFractionDigits: 2
+    }) + ' $';
+  }
+
+  /* ── Charger toutes les données du dashboard ── */
+  async function chargerDashboard() {
+    try {
+      /* Appel 1 : Solde, revenus, dépenses totales
+         GET /api/transactions/user/{userId}/balance */
+      const repBalance = await fetch(`${API_URL}/transactions/user/${user.id}/balance`);
+      const balance    = await repBalance.json();
+
+      /* Appel 2 : Prévisions (PredictionService)
+         GET /api/transactions/user/{userId}/prediction */
+      const repPrev  = await fetch(`${API_URL}/transactions/user/${user.id}/prediction`);
+      const prevision = await repPrev.json();
+
+      /* Appel 3 : Transactions récentes
+         GET /api/transactions/user/{userId} */
+      const repTx = await fetch(`${API_URL}/transactions/user/${user.id}`);
+      const transactions = await repTx.json();
+
+      /* Appel 4 : Budgets du mois
+         GET /api/budgets/user/{userId} */
+      const repBudgets = await fetch(`${API_URL}/budgets/user/${user.id}`);
+      const budgets    = await repBudgets.json();
+
+
+
+
+      /*  Remplir le hero */
+      const solde = balance.balance || 0;
+      document.getElementById('solde-valeur').textContent =
+        (solde >= 0 ? '+' : '-') + fmt(solde);
+      document.getElementById('hero-revenus').textContent  = '+' + fmt(balance.totalIncome  || 0);
+      document.getElementById('hero-depenses').textContent = '-' + fmt(balance.totalExpense || 0);
+      document.getElementById('hero-jours').textContent    =
+        prevision.remainingDays === 2147483647 ? '∞' : prevision.remainingDays + 'j';
+
+      /* Remplir les KPIs */
+      document.getElementById('kpi-revenus').textContent  = '+' + fmt(balance.totalIncome  || 0);
+      document.getElementById('kpi-depenses').textContent = '-' + fmt(balance.totalExpense || 0);
+      document.getElementById('kpi-jours').textContent    =
+        prevision.remainingDays === 2147483647 ? '∞ jours' : prevision.remainingDays + ' jours';
+      document.getElementById('kpi-moyenne').textContent  = fmt(prevision.dailyAverage || 0) + '/j';
+
+      /* Remplir les transactions récentes  */
+      afficherTransactions(transactions.slice(0, 7));
+
+      /*  Remplir les budgets  */
+      afficherBudgets(budgets);
+
+      /* Afficher alertes si nécessaire */
+      if (prevision.alert || (budgets && budgets.some(b => b.currentAmount > b.maxAmount))) {
+        afficherAlertes(prevision, budgets);
+      }
+
+    } catch (erreur) {
+      console.error('Erreur chargement dashboard:', erreur);
+      document.getElementById('solde-valeur').textContent = 'Erreur de connexion';
+    }
+  }
+
+  /*  Afficher  transactions  */
+  function afficherTransactions(transactions) {
+    const conteneur = document.getElementById('liste-transactions');
+
+    if (!transactions || transactions.length === 0) {
+      conteneur.innerHTML = `
+        <div class="etat-vide">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="24" cy="24" r="20"/><path d="M16 24h16M24 16v16"/></svg>
+          <p>Aucune transaction</p>
+          <a href="transactions.html" style="color:var(--vert); font-weight:600; font-size:13px;">Ajouter la première →</a>
+        </div>`;
+      return;
+    }
+
+    const html = transactions.map(tx => {
+      const estRevenu = tx.type === 'REVENU' || tx.amount > 0 && tx.calculateImpact > 0;
+      /* On détecte le type par la présence dans le discriminateur */
+      const type = (tx['@type'] === 'Revenu' || tx.type === 'REVENU') ? 'REVENU' : 'DEPENSE';
+      const isPos = type === 'REVENU';
+
+      return `
+        <div style="
+          display:flex; align-items:center; gap:12px;
+          padding:12px 16px; border-bottom:1px solid var(--gris-200);
+        ">
+          <!-- Icône catégorie -->
+          <div style="
+            width:36px; height:36px; border-radius:10px;
+            background:${isPos ? 'var(--vert-clair)' : 'var(--rouge-clair)'};
+            display:flex; align-items:center; justify-content:center;
+            font-size:16px; flex-shrink:0;
+          ">
+            ${isPos ? '💰' : '💸'}
+          </div>
+
+          <!-- Description + catégorie -->
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              ${tx.description || 'Sans description'}
+            </div>
+            <div style="font-size:11px; color:var(--gris-400);">
+              ${tx.category?.name || '—'} · ${tx.date || ''}
+            </div>
+          </div>
+
+          <!-- Montant -->
+          <div class="${isPos ? 'montant-pos' : 'montant-neg'}" style="font-size:14px; flex-shrink:0;">
+            ${isPos ? '+' : '-'}${fmt(tx.amount)}
+          </div>
+        </div>`;
+    }).join('');
+
+    conteneur.innerHTML = html;
+  }
+
+  /*  Afficher  budgets  */
+  function afficherBudgets(budgets) {
+    const conteneur = document.getElementById('liste-budgets');
+
+    if (!budgets || budgets.length === 0) {
+      conteneur.innerHTML = `
+        <p style="font-size:13px; color:var(--gris-400);">Aucun budget défini.</p>
+        <a href="budgets.html" style="color:var(--vert); font-weight:600; font-size:13px;">Créer un budget →</a>`;
+      return;
+    }
+
+    const html = budgets.map(b => {
+      const pct    = Math.min(100, Math.round((b.currentAmount / b.maxAmount) * 100));
+      const depasse = b.currentAmount > b.maxAmount;
+      const proche  = pct >= 80 && !depasse;
+      const couleur = depasse ? 'var(--rouge)' : proche ? 'var(--orange)' : 'var(--vert)';
+
+      return `
+        <div style="margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+            <div style="font-size:13px; font-weight:600;">${b.category?.name || 'Budget'}</div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:11px; color:var(--gris-400);">${fmt(b.currentAmount)} / ${fmt(b.maxAmount)}</span>
+              ${depasse
+                ? `<span class="pill pill-rouge">Dépassé</span>`
+                : proche
+                ? `<span class="pill pill-orange">${pct}%</span>`
+                : `<span class="pill pill-vert">${pct}%</span>`
+              }
+            </div>
+          </div>
+          <div class="barre-fond">
+            <div class="barre-remplie" style="width:${pct}%; background:${couleur};"></div>
+          </div>
+        </div>`;
+    }).join('');
+
+    conteneur.innerHTML = html;
+  }
+
+  /*  Afficher  alertes  */
+  function afficherAlertes(prevision, budgets) {
+    const section  = document.getElementById('section-alertes');
+    const conteneur = document.getElementById('liste-alertes');
+    section.style.display = 'block';
+
+    let html = '';
+
+    /* Alerte épuisement budget */
+    if (prevision.alert) {
+      html += `
+        <div class="alerte alerte-rouge">
+          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
+          <div>
+            <div class="alerte-titre">Budget épuisé dans ${prevision.remainingDays} jours</div>
+            <div>À ce rythme (${fmt(prevision.dailyAverage)}/jour), le solde sera à zéro le ${prevision.breakDate}.</div>
+          </div>
+        </div>`;
+
+      /* Notification dans  topbar */
+      document.getElementById('notif-point').style.display = 'block';
+    }
+
+    /* Alertes budgets dépassés */
+    if (budgets) {
+      budgets.filter(b => b.currentAmount > b.maxAmount).forEach(b => {
+        html += `
+          <div class="alerte alerte-rouge">
+            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
+            <div>
+              <div class="alerte-titre">Budget ${b.category?.name} dépassé</div>
+              <div>Dépassement de ${fmt(b.currentAmount - b.maxAmount)}.</div>
+            </div>
+          </div>`;
+      });
+
+      /* Budgets proches de limite */
+      budgets.filter(b => (b.currentAmount / b.maxAmount) >= 0.8 && b.currentAmount <= b.maxAmount).forEach(b => {
+        const pct = Math.round((b.currentAmount / b.maxAmount) * 100);
+        html += `
+          <div class="alerte alerte-orange">
+            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
+            <div>
+              <div class="alerte-titre">Budget ${b.category?.name} bientôt atteint (${pct}%)</div>
+              <div>Il reste seulement ${fmt(b.maxAmount - b.currentAmount)} disponible.</div>
+            </div>
+          </div>`;
+      });
+    }
+
+    conteneur.innerHTML = html || '<p style="font-size:13px; color:var(--gris-400);">Aucune alerte.</p>';
+  }
+
+  /* Lance le chargement */
+  chargerDashboard();
+</script>
+</body>
+</html>

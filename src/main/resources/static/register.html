@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Budgetly — Créer un compte</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    :root {
+      --vert:       #6B8F1A;
+      --vert-hover: #5A7A14;
+      --vert-clair: #EEF4D8;
+      --rouge:      #E53E3E;
+      --gris-100:   #F1F5F9;
+      --gris-200:   #E2E8F0;
+      --gris-400:   #94A3B8;
+      --gris-700:   #334155;
+      --gris-900:   #0F172A;
+      --blanc:      #FFFFFF;
+      --rayon:      10px;
+      --rayon-lg:   16px;
+      --police:     'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--police);
+      background: var(--gris-100);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Carte principale */
+    .carte {
+      width: 100%;
+      max-width: 440px;
+      background: var(--blanc);
+      border-radius: var(--rayon-lg);
+      border: 1px solid var(--gris-200);
+      padding: 2.25rem 2rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,.07);
+      animation: monter .4s ease both;
+    }
+
+    @keyframes monter {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /*  En-tête */
+    .entete {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+
+    .logo-img {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      object-fit: cover;
+    }
+
+    /* Fallback si le logo ne charge pas */
+    .logo-fallback {
+      width: 40px; height: 40px;
+      background: var(--vert);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-fallback svg {
+      width: 20px; height: 20px;
+      stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round;
+    }
+
+    .logo-nom    { font-size: 20px; font-weight: 700; color: var(--gris-900); }
+    .logo-slogan { font-size: 11px; color: var(--gris-400); }
+
+    .titre-form { font-size: 20px; font-weight: 700; color: var(--gris-900); margin-bottom: 4px; }
+    .sous-titre { font-size: 13px; color: var(--gris-400); margin-bottom: 1.5rem; }
+
+    /* Champs */
+    .champ-group { margin-bottom: .875rem; }
+
+    .champ-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gris-700);
+      margin-bottom: 5px;
+    }
+
+    .champ-wrap { position: relative; }
+
+    .champ-icone {
+      position: absolute;
+      left: 11px; top: 50%;
+      transform: translateY(-50%);
+      width: 15px; height: 15px;
+      stroke: var(--gris-400); fill: none;
+      stroke-width: 1.75; stroke-linecap: round;
+      pointer-events: none;
+    }
+
+    .champ-input {
+      width: 100%;
+      background: var(--gris-100);
+      border: 1.5px solid var(--gris-200);
+      border-radius: var(--rayon);
+      padding: 9px 12px 9px 36px;
+      font-size: 13px;
+      font-family: var(--police);
+      color: var(--gris-900);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+
+    .champ-input:focus {
+      border-color: var(--vert);
+      background: var(--blanc);
+      box-shadow: 0 0 0 3px rgba(107,143,26,.12);
+    }
+
+    .champ-input.erreur { border-color: var(--rouge); }
+
+    .bouton-oeil {
+      position: absolute;
+      right: 11px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      cursor: pointer; color: var(--gris-400);
+      transition: color .15s; padding: 2px;
+    }
+
+    .bouton-oeil:hover { color: var(--gris-700); }
+    .bouton-oeil svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.75; }
+
+    /* ── Indicateur force mdp ── */
+    .force-mdp {
+      margin-top: 6px;
+      display: flex;
+      gap: 4px;
+    }
+
+    .force-barre {
+      flex: 1; height: 3px;
+      background: var(--gris-200);
+      border-radius: 99px;
+      transition: background .3s;
+    }
+
+    .force-barre.faible  { background: var(--rouge); }
+    .force-barre.moyen   { background: orange; }
+    .force-barre.fort    { background: var(--vert); }
+
+    .force-texte {
+      font-size: 11px;
+      color: var(--gris-400);
+      margin-top: 3px;
+    }
+
+    /*  Boite erreur */
+    .boite-erreur {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: #FFF0F0;
+      border: 1px solid #FED7D7;
+      border-radius: var(--rayon);
+      padding: 10px 14px;
+      margin-bottom: 1rem;
+      font-size: 13px;
+      color: var(--rouge);
+    }
+
+    .boite-erreur.visible { display: flex; }
+    .boite-erreur svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.75; flex-shrink: 0; }
+
+    /* Bouton submit */
+    .bouton-submit {
+      width: 100%;
+      padding: 11px;
+      background: var(--vert);
+      color: #fff;
+      border: none;
+      border-radius: var(--rayon);
+      font-size: 14px;
+      font-weight: 700;
+      font-family: var(--police);
+      cursor: pointer;
+      transition: all .15s;
+      margin-top: .25rem;
+    }
+
+    .bouton-submit:hover:not(:disabled) { background: var(--vert-hover); transform: translateY(-1px); }
+    .bouton-submit:disabled { opacity: .65; cursor: not-allowed; }
+
+    /* Spinner  */
+    .spinner {
+      display: none;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: tourner .65s linear infinite;
+      margin: 0 auto;
+    }
+
+    .bouton-submit.chargement .texte-btn { display: none; }
+    .bouton-submit.chargement .spinner   { display: block; }
+    @keyframes tourner { to { transform: rotate(360deg); } }
+
+    /*  Pied  */
+    .pied {
+      text-align: center;
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--gris-200);
+      font-size: 13px;
+      color: var(--gris-400);
+    }
+
+    .pied a { color: var(--vert); font-weight: 600; }
+    .pied a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="carte">
+
+  <!-- En-tête logo -->
+  <div class="entete">
+    <img
+      src="img/logo.png"
+      alt="Logo Budgetly"
+      class="logo-img"
+      onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';"
+    />
+    <div id="logo-fallback" class="logo-fallback" style="display:none;">
+      <svg viewBox="0 0 18 18"><path d="M2 9h14M9 2v14M4 5.5l5-3.5 5 3.5M4 12.5l5 3.5 5-3.5"/></svg>
+    </div>
+    <div>
+      <div class="logo-nom">Budgetly</div>
+      <div class="logo-slogan">Gestion budgétaire intelligente</div>
+    </div>
+  </div>
+
+  <div class="titre-form">Créer un compte</div>
+  <div class="sous-titre">Rejoignez Budgetly et gérez vos finances</div>
+
+  <!-- Boite d'erreur -->
+  <div class="boite-erreur" id="boiteErreur">
+    <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
+    <span id="texteErreur"></span>
+  </div>
+
+  <!-- Formulaire  -->
+  <form id="formulaireInscription" novalidate>
+
+    <!-- Nom -->
+    <div class="champ-group">
+      <label class="champ-label" for="nom">Nom complet</label>
+      <div class="champ-wrap">
+        <svg class="champ-icone" viewBox="0 0 16 16">
+          <circle cx="8" cy="5" r="3"/>
+          <path d="M2 14c0-3.31 2.69-6 6-6s6 2.69 6 6"/>
+        </svg>
+        <input type="text" id="nom" class="champ-input" placeholder="Roxane Julien" required/>
+      </div>
+    </div>
+
+    <!-- Email -->
+    <div class="champ-group">
+      <label class="champ-label" for="email">Adresse courriel</label>
+      <div class="champ-wrap">
+        <svg class="champ-icone" viewBox="0 0 16 16">
+          <rect x="2" y="4" width="12" height="9" rx="1.5"/>
+          <path d="M2 4l6 5 6-5"/>
+        </svg>
+        <input type="email" id="email" class="champ-input" placeholder="vous@email.com" required/>
+      </div>
+    </div>
+
+    <!-- mdp -->
+    <div class="champ-group">
+      <label class="champ-label" for="motDePasse">Mot de passe</label>
+      <div class="champ-wrap">
+        <svg class="champ-icone" viewBox="0 0 16 16">
+          <rect x="3" y="7" width="10" height="7" rx="1.5"/>
+          <path d="M5 7V5a3 3 0 016 0v2"/>
+        </svg>
+        <input type="password" id="motDePasse" class="champ-input" placeholder="Min. 4 caractères" required oninput="evaluerMotDePasse(this.value)"/>
+        <button type="button" class="bouton-oeil" onclick="toggleMdp('motDePasse', 'oeil1')">
+          <svg id="oeil1" viewBox="0 0 16 16">
+            <path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/>
+            <circle cx="8" cy="8" r="2"/>
+          </svg>
+        </button>
+      </div>
+      <!-- Indicateur de force mdp -->
+      <div class="force-mdp" id="forceMdp">
+        <div class="force-barre" id="barre1"></div>
+        <div class="force-barre" id="barre2"></div>
+        <div class="force-barre" id="barre3"></div>
+      </div>
+      <div class="force-texte" id="forceTexte"></div>
+    </div>
+
+    <!-- Confirmation mdp-->
+    <div class="champ-group">
+      <label class="champ-label" for="confirmer">Confirmer le mot de passe</label>
+      <div class="champ-wrap">
+        <svg class="champ-icone" viewBox="0 0 16 16">
+          <rect x="3" y="7" width="10" height="7" rx="1.5"/>
+          <path d="M5 7V5a3 3 0 016 0v2"/>
+        </svg>
+        <input type="password" id="confirmer" class="champ-input" placeholder="Répétez le mot de passe" required/>
+        <button type="button" class="bouton-oeil" onclick="toggleMdp('confirmer', 'oeil2')">
+          <svg id="oeil2" viewBox="0 0 16 16">
+            <path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/>
+            <circle cx="8" cy="8" r="2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <button type="submit" class="bouton-submit" id="boutonSubmit">
+      <span class="texte-btn">Créer mon compte</span>
+      <div class="spinner"></div>
+    </button>
+
+  </form>
+
+  <div class="pied">
+    Déjà un compte ? <a href="login.html">Se connecter</a>
+  </div>
+
+</div>
+
+<script>
+
+
+  const API_URL = 'http://localhost:8080/api';
+
+  /* ── Toggle mot de passe ── */
+  function toggleMdp(champId, iconeId) {
+    const champ = document.getElementById(champId);
+    const icone = document.getElementById(iconeId);
+    if (champ.type === 'password') {
+      champ.type = 'text';
+      icone.innerHTML = `<path d="M2 2l12 12M6.5 6.5A3 3 0 0011.4 11M4.3 4.4C2.7 5.6 1.4 7 .8 8c1.5 2.5 4 5 7.2 5 1.2 0 2.4-.4 3.4-1"/>`;
+    } else {
+      champ.type = 'password';
+      icone.innerHTML = `<path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/>`;
+    }
+  }
+
+  /* ── Indicateur force mdp ── */
+  function evaluerMotDePasse(mdp) {
+    const barres = ['barre1', 'barre2', 'barre3'];
+    const texte  = document.getElementById('forceTexte');
+
+    barres.forEach(id => {
+      document.getElementById(id).className = 'force-barre';
+    });
+
+    if (mdp.length === 0) { texte.textContent = ''; return; }
+
+    if (mdp.length < 4) {
+      document.getElementById('barre1').classList.add('faible');
+      texte.textContent = 'Trop court';
+      texte.style.color = '#E53E3E';
+    } else if (mdp.length < 8) {
+      ['barre1','barre2'].forEach(id => document.getElementById(id).classList.add('moyen'));
+      texte.textContent = 'Mot de passe moyen';
+      texte.style.color = 'orange';
+    } else {
+      barres.forEach(id => document.getElementById(id).classList.add('fort'));
+      texte.textContent = 'Mot de passe fort ✓';
+      texte.style.color = '#6B8F1A';
+    }
+  }
+
+  /* ── Afficher / cacher erreur ── */
+  function afficherErreur(msg) {
+    document.getElementById('texteErreur').textContent = msg;
+    document.getElementById('boiteErreur').classList.add('visible');
+  }
+
+  function cacherErreur() {
+    document.getElementById('boiteErreur').classList.remove('visible');
+  }
+
+  /*  Soumission formulaire  */
+  document.getElementById('formulaireInscription').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    cacherErreur();
+
+    const nom        = document.getElementById('nom').value.trim();
+    const email      = document.getElementById('email').value.trim();
+    const motDePasse = document.getElementById('motDePasse').value;
+    const confirmer  = document.getElementById('confirmer').value;
+    const bouton     = document.getElementById('boutonSubmit');
+
+    /* Validations côté client */
+    if (!nom || !email || !motDePasse || !confirmer) {
+      afficherErreur('Veuillez remplir tous les champs.'); return;
+    }
+
+    if (motDePasse.length < 4) {
+      afficherErreur('Le mot de passe doit avoir au moins 4 caractères.'); return;
+    }
+
+    if (motDePasse !== confirmer) {
+      afficherErreur('Les mots de passe ne correspondent pas.'); return;
+    }
+
+    /* Mode chargement */
+    bouton.classList.add('chargement');
+    bouton.disabled = true;
+
+
+
+
+    try {
+      /*  Appel API : POST /api/users/register 
+         Envoie les données au backend Spring Boot
+         Le backend crée l'utilisateur en base MySQL
+          */
+      const reponse = await fetch(`${API_URL}/users/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: nom, email: email, password: motDePasse })
+      });
+
+      const donnees = await reponse.json();
+
+      if (!reponse.ok) {
+        afficherErreur(donnees.message || 'Erreur lors de la création du compte.');
+        return;
+      }
+
+
+
+      /* Succès → redirige vers login avec message */
+      sessionStorage.setItem('inscription_succes', 'Compte créé avec succès ! Connectez-vous.');
+      window.location.href = 'login.html';
+
+    } catch (erreur) {
+      afficherErreur('Impossible de contacter le serveur. Vérifiez que l\'application est lancée.');
+    } finally {
+      bouton.classList.remove('chargement');
+      bouton.disabled = false;
+    }
+  });
+
+  /* Efface erreur si l'utilisateur retape */
+  ['nom','email','motDePasse','confirmer'].forEach(id => {
+    document.getElementById(id).addEventListener('input', cacherErreur);
+  });
+</script>
+
+</body>
+</html>
