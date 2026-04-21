@@ -1,5 +1,6 @@
 package com.example.budgetly_v1_avecsb.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
@@ -29,6 +30,7 @@ public abstract class Transaction {
     protected Category category;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "user_id", nullable = false)
     protected User user;
 
