@@ -287,7 +287,7 @@
     }
 
     tbody.innerHTML = transactions.map(tx => {
-      const isPos = tx['@type'] === 'Revenu' || tx.type === 'REVENU';
+      const isPos = tx.revenu === true;
       return `
         <tr>
           <td>
@@ -340,7 +340,7 @@
       const desc    = (tx.description || '').toLowerCase();
       const catNom  = (tx.category?.name || '').toLowerCase();
       const matchRe = desc.includes(recherche) || catNom.includes(recherche);
-      const txType  = tx['@type'] === 'Revenu' ? 'REVENU' : 'DEPENSE';
+      const txType = tx.revenu === true ? 'REVENU' : 'DEPENSE';
       const matchTy = !type || txType === type;
       return matchRe && matchTy;
     });

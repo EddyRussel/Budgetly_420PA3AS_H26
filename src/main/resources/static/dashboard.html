@@ -287,7 +287,7 @@
       const estRevenu = tx.type === 'REVENU' || tx.amount > 0 && tx.calculateImpact > 0;
       /* On détecte le type par la présence dans le discriminateur */
       const type = (tx['@type'] === 'Revenu' || tx.type === 'REVENU') ? 'REVENU' : 'DEPENSE';
-      const isPos = type === 'REVENU';
+      const isPos = tx.revenu === true;
 
       return `
         <div style="
