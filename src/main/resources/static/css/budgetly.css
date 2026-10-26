@@ -9,6 +9,14 @@
   --vert-clair:  #EEF4D8;   /* fond très clair vert */
   --vert-mid:    #8CB827;   /* vert plus vif du dégradé */
 
+
+  --orange: #ED8936;
+  --orange-clair: #FFFBEB;
+  --bleu: #4299E1;
+  --gris-100: #F7F8FA;
+  --gris-200: #E8EAED;
+  --gris-900: #1A1D23;
+
   /* Couleurs fonctionnelles */
   --rouge:       #E53E3E;
   --rouge-clair: #FFF0F0;

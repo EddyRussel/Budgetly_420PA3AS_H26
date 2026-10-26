@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Budgetly — Catégories</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="css/budgetly.css" rel="stylesheet"/>
+  <style>
+    /* Grille de catégories */
+    .cat-carte {
+      background: var(--blanc);
+      border-radius: var(--rayon-lg);
+      padding: 1.25rem;
+      box-shadow: var(--ombre);
+      border: 1px solid var(--gris-200);
+      transition: box-shadow .2s, transform .15s;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .cat-carte:hover { box-shadow: var(--ombre-md); transform: translateY(-1px); }
+
+    .cat-type-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+      padding: 3px 8px; border-radius: 99px;
+    }
+    .cat-type-revenu {
+      background: var(--vert-clair);
+      color: var(--vert);
+    }
+    .cat-type-depense {
+      background: var(--rouge-clair);
+      color: var(--rouge);
+    }
+
+    .cat-nom {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gris-900);
+    }
+
+    .cat-nb-tx {
+      font-size: 12px;
+      color: var(--gris-400);
+    }
+
+    .cat-actions {
+      display: flex; gap: 6px;
+      padding-top: 10px;
+      border-top: 1px solid var(--gris-100);
+      margin-top: auto;
+    }
+
+    /* Onglets REVENU / DEPENSE */
+    .onglets {
+      display: flex; gap: 4px;
+      background: var(--gris-100);
+      border-radius: 10px;
+      padding: 4px;
+      width: fit-content;
+      margin-bottom: 1.25rem;
+    }
+    .onglet {
+      padding: 6px 18px;
+      border-radius: 7px;
+      font-size: 13px; font-weight: 600;
+      border: none; cursor: pointer;
+      font-family: var(--police);
+      color: var(--gris-500);
+      background: transparent;
+      transition: all .15s;
+    }
+    .onglet.actif {
+      background: var(--blanc);
+      color: var(--gris-900);
+      box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    }
+
+    /* Compteurs */
+    .compteur {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px;
+      border-radius: 99px;
+      font-size: 10px; font-weight: 700;
+      margin-left: 4px;
+    }
+    .compteur-rev { background: var(--vert-clair); color: var(--vert); }
+    .compteur-dep { background: var(--rouge-clair); color: var(--rouge); }
+
+    /* État vide */
+    .etat-vide {
+      text-align: center;
+      padding: 3rem;
+      color: var(--gris-400);
+    }
+    .etat-vide p { font-size: 14px; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar-slot"></aside>
+
+  <div class="contenu-principal">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div>
+        <div class="topbar-titre">Catégories</div>
+        <div class="topbar-sous-titre" id="sous-titre-cat">Chargement...</div>
+      </div>
+      <div class="topbar-droite">
+        <button class="btn-vert" onclick="ouvrirModalAjout()">
+          <svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12"/></svg>
+          Nouvelle catégorie
+        </button>
+      </div>
+    </header>
+
+    <div class="page-contenu">
+
+      <!-- Alertes -->
+      <div id="zone-alerte" class="mb-3"></div>
+
+      <!-- Onglets -->
+      <div class="onglets">
+        <button class="onglet actif" id="onglet-dep" onclick="filtrer('DEPENSE')">
+          Dépenses
+          <span class="compteur compteur-dep" id="nb-dep">0</span>
+        </button>
+        <button class="onglet" id="onglet-rev" onclick="filtrer('REVENU')">
+          Revenus
+          <span class="compteur compteur-rev" id="nb-rev">0</span>
+        </button>
+        <button class="onglet" id="onglet-tout" onclick="filtrer('TOUT')">
+          Toutes
+        </button>
+      </div>
+
+      <!-- Grille -->
+      <div class="row g-3" id="grille-categories">
+        <div class="col-12">
+          <div class="kpi-carte">
+            <div style="text-align:center; padding:2rem; color:var(--gris-400);">
+              <div class="spinner-border spinner-border-sm text-secondary mb-2"></div>
+              <div>Chargement des catégories...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal Ajouter / Modifier catégorie -->
+<div class="modal fade" id="modalCategorie" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-titre">Nouvelle catégorie</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-3">
+
+          <!-- Nom -->
+          <div class="col-12">
+            <label class="champ-label">Nom de la catégorie</label>
+            <input type="text" id="cat-nom" class="champ-input" placeholder="Ex: Épicerie, Salaire…" maxlength="50"/>
+          </div>
+
+          <!-- Type -->
+          <div class="col-12">
+            <label class="champ-label">Type</label>
+            <div style="display:flex; gap:10px;">
+              <label style="flex:1; cursor:pointer;">
+                <input type="radio" name="cat-type" value="DEPENSE" id="type-depense" checked style="display:none;"/>
+                <div class="type-option" id="opt-depense"
+                  style="border:2px solid var(--rouge); background:var(--rouge-clair); color:var(--rouge);
+                         border-radius:10px; padding:10px; text-align:center; font-size:13px; font-weight:700;
+                         transition:all .15s;"
+                  onclick="selectionnerType('DEPENSE')">
+                  🔴 Dépense
+                </div>
+              </label>
+              <label style="flex:1; cursor:pointer;">
+                <input type="radio" name="cat-type" value="REVENU" id="type-revenu" style="display:none;"/>
+                <div class="type-option" id="opt-revenu"
+                  style="border:2px solid var(--gris-200); background:var(--gris-100); color:var(--gris-400);
+                         border-radius:10px; padding:10px; text-align:center; font-size:13px; font-weight:700;
+                         transition:all .15s;"
+                  onclick="selectionnerType('REVENU')">
+                  🟢 Revenu
+                </div>
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Erreur -->
+        <div id="modal-erreur" class="alerte alerte-rouge mt-3" style="display:none;">
+          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
+          <div id="modal-erreur-texte"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-contour" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn-vert" onclick="sauvegarderCategorie()">Enregistrer</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal Supprimer -->
+<div class="modal fade" id="modalSupprimer" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Supprimer la catégorie ?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px; color:var(--gris-500);">
+          Cette catégorie sera supprimée définitivement.
+          Les transactions associées ne seront pas supprimées.
+        </p>
+        <p style="font-size:13px; font-weight:700; color:var(--rouge);" id="modal-sup-nom"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-contour" data-bs-dismiss="modal">Annuler</button>
+        <button class="btn-vert" style="background:var(--rouge);" onclick="confirmerSuppression()">Supprimer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/sidebar.js"></script>
+<script>
+  injecterSidebar('categories');
+
+  const user = getUser();
+  let toutesCategories = [];
+  let filtreActif      = 'DEPENSE';
+  let idASupprimer     = null;
+  let idAModifier      = null;
+
+  /* ── Charger les catégories ────────────────────────── */
+  async function charger() {
+    try {
+      const rep = await fetch(`${API_URL}/categories`);
+      if (!rep.ok) throw new Error('HTTP ' + rep.status);
+      toutesCategories = await rep.json();
+
+      const nbDep = toutesCategories.filter(c => c.type === 'DEPENSE').length;
+      const nbRev = toutesCategories.filter(c => c.type === 'REVENU').length;
+
+      document.getElementById('nb-dep').textContent = nbDep;
+      document.getElementById('nb-rev').textContent = nbRev;
+      document.getElementById('sous-titre-cat').textContent =
+        `${toutesCategories.length} catégorie${toutesCategories.length !== 1 ? 's' : ''} — ${nbDep} dépense${nbDep !== 1 ? 's' : ''}, ${nbRev} revenu${nbRev !== 1 ? 's' : ''}`;
+
+      afficherCategories();
+
+    } catch (e) {
+      console.error('Erreur chargement catégories:', e);
+      document.getElementById('grille-categories').innerHTML = `
+        <div class="col-12">
+          <div class="alerte alerte-rouge">
+            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
+            Impossible de charger les catégories. Vérifiez que Spring Boot est lancé.
+          </div>
+        </div>`;
+    }
+  }
+
+  /* ── Afficher la grille ────────────────────────────── */
+  function afficherCategories() {
+    const cats = filtreActif === 'TOUT'
+      ? toutesCategories
+      : toutesCategories.filter(c => c.type === filtreActif);
+
+    const grille = document.getElementById('grille-categories');
+
+    if (cats.length === 0) {
+      grille.innerHTML = `
+        <div class="col-12">
+          <div class="carte">
+            <div class="etat-vide">
+              <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M36 24H28l-3 6-6-12-3 6h-4"/>
+                <rect x="6" y="8" width="36" height="32" rx="4"/>
+              </svg>
+              <p>Aucune catégorie de type «&nbsp;${filtreActif === 'DEPENSE' ? 'Dépense' : 'Revenu'}&nbsp;» trouvée</p>
+              <button class="btn-vert" onclick="ouvrirModalAjout()">
+                <svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12"/></svg>
+                Créer une catégorie
+              </button>
+            </div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    grille.innerHTML = cats.map(c => {
+      const isRevenu  = c.type === 'REVENU';
+      const couleur   = isRevenu ? 'var(--vert)' : 'var(--rouge)';
+      const bg        = isRevenu ? 'var(--vert-clair)' : 'var(--rouge-clair)';
+      const classBadge= isRevenu ? 'cat-type-revenu' : 'cat-type-depense';
+
+      return `
+        <div class="col-sm-6 col-lg-4 col-xl-3">
+          <div class="cat-carte">
+
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <span class="cat-type-badge ${classBadge}">
+                ${isRevenu ? '🟢' : '🔴'} ${c.type}
+              </span>
+              <div style="width:34px; height:34px; border-radius:10px; background:${bg};
+                          display:flex; align-items:center; justify-content:center;">
+                <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="${couleur}" stroke-width="1.75" stroke-linecap="round">
+                  ${isRevenu
+                    ? '<path d="M8 14V2M3 7l5-5 5 5"/>'
+                    : '<path d="M9 2H4a2 2 0 00-2 2v4l6 6 6-6-5-6z"/><circle cx="5.5" cy="6.5" r="1"/>'}
+                </svg>
+              </div>
+            </div>
+
+            <div class="cat-nom">${escapeHtml(c.name || c.nom || '')}</div>
+            <div class="cat-nb-tx">ID : ${c.id}</div>
+
+            <div class="cat-actions">
+              <button onclick="ouvrirModalModifier(${c.id}, '${escapeHtml(c.name || c.nom || '')}', '${c.type}')"
+                style="flex:1; padding:7px 8px; font-size:11px; font-weight:600; font-family:var(--police);
+                       border:1px solid var(--gris-200); border-radius:8px; background:white; cursor:pointer;
+                       color:var(--gris-700); transition:all .15s;"
+                onmouseover="this.style.borderColor='var(--vert)'"
+                onmouseout="this.style.borderColor='var(--gris-200)'">
+                ✏️ Modifier
+              </button>
+              <button onclick="supprimerCategorie(${c.id}, '${escapeHtml(c.name || c.nom || '')}')"
+                style="width:34px; padding:7px; font-size:11px;
+                       border:1px solid var(--gris-200); border-radius:8px; background:white; cursor:pointer;
+                       display:flex; align-items:center; justify-content:center; transition:all .15s;"
+                onmouseover="this.style.borderColor='var(--rouge)'"
+                onmouseout="this.style.borderColor='var(--gris-200)'">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--rouge)" stroke-width="1.75" stroke-linecap="round">
+                  <path d="M3 5h10M6 5V3h4v2M5 5l1 8h4l1-8"/>
+                </svg>
+              </button>
+            </div>
+
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  /* ── Filtres / onglets ─────────────────────────────── */
+  function filtrer(type) {
+    filtreActif = type;
+    ['DEPENSE','REVENU','TOUT'].forEach(t => {
+      const id = t === 'DEPENSE' ? 'onglet-dep' : t === 'REVENU' ? 'onglet-rev' : 'onglet-tout';
+      document.getElementById(id).classList.toggle('actif', t === type);
+    });
+    afficherCategories();
+  }
+
+  /* ── Sélectionner type dans le modal ───────────────── */
+  function selectionnerType(type) {
+    document.getElementById('type-depense').checked = type === 'DEPENSE';
+    document.getElementById('type-revenu').checked  = type === 'REVENU';
+
+    document.getElementById('opt-depense').style.cssText =
+      type === 'DEPENSE'
+        ? 'border:2px solid var(--rouge); background:var(--rouge-clair); color:var(--rouge); border-radius:10px; padding:10px; text-align:center; font-size:13px; font-weight:700; transition:all .15s;'
+        : 'border:2px solid var(--gris-200); background:var(--gris-100); color:var(--gris-400); border-radius:10px; padding:10px; text-align:center; font-size:13px; font-weight:700; transition:all .15s;';
+
+    document.getElementById('opt-revenu').style.cssText =
+      type === 'REVENU'
+        ? 'border:2px solid var(--vert); background:var(--vert-clair); color:var(--vert); border-radius:10px; padding:10px; text-align:center; font-size:13px; font-weight:700; transition:all .15s;'
+        : 'border:2px solid var(--gris-200); background:var(--gris-100); color:var(--gris-400); border-radius:10px; padding:10px; text-align:center; font-size:13px; font-weight:700; transition:all .15s;';
+  }
+
+  /* ── Modal ajouter ─────────────────────────────────── */
+  function ouvrirModalAjout() {
+    idAModifier = null;
+    document.getElementById('modal-titre').textContent = 'Nouvelle catégorie';
+    document.getElementById('cat-nom').value = '';
+    selectionnerType(filtreActif === 'TOUT' ? 'DEPENSE' : filtreActif);
+    document.getElementById('modal-erreur').style.display = 'none';
+    new bootstrap.Modal(document.getElementById('modalCategorie')).show();
+  }
+
+  /* ── Modal modifier ────────────────────────────────── */
+  function ouvrirModalModifier(id, nom, type) {
+    idAModifier = id;
+    document.getElementById('modal-titre').textContent = 'Modifier la catégorie';
+    document.getElementById('cat-nom').value = nom;
+    selectionnerType(type);
+    document.getElementById('modal-erreur').style.display = 'none';
+    new bootstrap.Modal(document.getElementById('modalCategorie')).show();
+  }
+
+  /* ── Sauvegarder catégorie ─────────────────────────── */
+  async function sauvegarderCategorie() {
+    const nom  = document.getElementById('cat-nom').value.trim();
+    const type = document.querySelector('input[name="cat-type"]:checked')?.value;
+
+    if (!nom) {
+      document.getElementById('modal-erreur-texte').textContent = 'Le nom est obligatoire.';
+      document.getElementById('modal-erreur').style.display = 'flex';
+      return;
+    }
+
+    document.getElementById('modal-erreur').style.display = 'none';
+
+    try {
+      let url    = `${API_URL}/categories`;
+      let method = 'POST';
+      if (idAModifier) {
+        url    = `${API_URL}/categories/${idAModifier}`;
+        method = 'PUT';
+      }
+
+      const rep = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: nom, type })
+      });
+
+      if (!rep.ok) {
+        const err = await rep.text();
+        document.getElementById('modal-erreur-texte').textContent = err || 'Erreur serveur.';
+        document.getElementById('modal-erreur').style.display = 'flex';
+        return;
+      }
+
+      bootstrap.Modal.getInstance(document.getElementById('modalCategorie')).hide();
+      idAModifier = null;
+      await charger();
+
+    } catch (e) {
+      document.getElementById('modal-erreur-texte').textContent = 'Impossible de contacter le serveur.';
+      document.getElementById('modal-erreur').style.display = 'flex';
+    }
+  }
+
+  /* ── Supprimer ─────────────────────────────────────── */
+  function supprimerCategorie(id, nom) {
+    idASupprimer = id;
+    document.getElementById('modal-sup-nom').textContent = '« ' + nom + ' »';
+    new bootstrap.Modal(document.getElementById('modalSupprimer')).show();
+  }
+
+  async function confirmerSuppression() {
+    if (!idASupprimer) return;
+    try {
+      const rep = await fetch(`${API_URL}/categories/${idASupprimer}`, { method: 'DELETE' });
+      bootstrap.Modal.getInstance(document.getElementById('modalSupprimer')).hide();
+      idASupprimer = null;
+
+      if (!rep.ok) {
+        document.getElementById('zone-alerte').innerHTML = `
+          <div class="alerte alerte-rouge mb-3">
+            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
+            Impossible de supprimer — cette catégorie est peut-être utilisée par des transactions.
+          </div>`;
+        return;
+      }
+
+      document.getElementById('zone-alerte').innerHTML = '';
+      await charger();
+
+    } catch (e) {
+      console.error('Erreur suppression:', e);
+    }
+  }
+
+  /* ── Utilitaire XSS ────────────────────────────────── */
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+
+  /* ── Lancement ─────────────────────────────────────── */
+  charger();
+</script>
+</body>
+</html>

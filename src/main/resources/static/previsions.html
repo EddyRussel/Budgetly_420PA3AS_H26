@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Budgetly — Prévisions</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="css/budgetly.css" rel="stylesheet"/>
+  <style>
+    /* Carte prévision principale */
+    .prev-grande-carte {
+      background: linear-gradient(135deg, #1A2332 0%, #2d3f57 100%);
+      border-radius: var(--rayon-lg);
+      padding: 2rem;
+      color: white;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .prev-solde-label { font-size: 12px; color: rgba(255,255,255,.55); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+    .prev-solde-valeur {
+      font-size: 42px;
+      font-weight: 800;
+      font-family: var(--police-mono);
+      line-height: 1.1;
+    }
+    .prev-solde-valeur.positif { color: #8CB827; }
+    .prev-solde-valeur.negatif { color: #E53E3E; }
+    .prev-date-fin {
+      font-size: 14px;
+      color: rgba(255,255,255,.7);
+      margin-top: 10px;
+    }
+    .prev-date-fin strong { color: white; }
+
+    /* Jauge jours restants */
+    .jauge-fond {
+      height: 12px;
+      background: rgba(255,255,255,.15);
+      border-radius: 99px;
+      overflow: hidden;
+      margin: 1rem 0 .5rem;
+    }
+    .jauge-rempli {
+      height: 100%;
+      border-radius: 99px;
+      transition: width .6s ease;
+    }
+
+    /* Tuiles de stats */
+    .stat-tuile {
+      background: var(--blanc);
+      border-radius: var(--rayon-lg);
+      padding: 1.25rem;
+      box-shadow: var(--ombre);
+      border: 1px solid var(--gris-200);
+      height: 100%;
+    }
+    .stat-tuile-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--gris-400);
+      margin-bottom: 6px;
+    }
+    .stat-tuile-valeur {
+      font-size: 26px;
+      font-weight: 800;
+      font-family: var(--police-mono);
+      color: var(--gris-900);
+      line-height: 1.1;
+    }
+    .stat-tuile-sous {
+      font-size: 12px;
+      color: var(--gris-400);
+      margin-top: 4px;
+    }
+    .stat-tuile-icone {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 12px;
+    }
+    .stat-tuile-icone svg { width: 18px; height: 18px; }
+
+    /* Tableau prévisions journalières */
+    .prev-table th {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--gris-400);
+      border-bottom: 1px solid var(--gris-200);
+      padding: .6rem 1rem;
+    }
+    .prev-table td {
+      font-size: 13px;
+      padding: .65rem 1rem;
+      border-bottom: 1px solid var(--gris-100);
+      color: var(--gris-700);
+    }
+    .prev-table tr:last-child td { border-bottom: none; }
+    .prev-table tr.critique td { background: #FFF0F0; }
+    .prev-table tr.alerte  td { background: #FFFBEB; }
+
+    /* Seuil d'alerte */
+    .seuil-bloc {
+      background: var(--blanc);
+      border-radius: var(--rayon-lg);
+      padding: 1.25rem;
+      box-shadow: var(--ombre);
+      border: 1px solid var(--gris-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .seuil-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--orange-clair);
+      color: var(--orange);
+      font-size: 12px; font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 99px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar-slot"></aside>
+
+  <div class="contenu-principal">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div>
+        <div class="topbar-titre">Prévisions</div>
+        <div class="topbar-sous-titre" id="sous-titre-prev">Projection basée sur vos habitudes</div>
+      </div>
+      <div class="topbar-droite">
+        <button class="btn-contour" onclick="charger()">
+          <svg viewBox="0 0 16 16" width="14" height="14"><path d="M2 8a6 6 0 1010.7-3.7M2 8V4m0 4H6" stroke-linecap="round"/></svg>
+          Actualiser
+        </button>
+      </div>
+    </header>
+
+    <div class="page-contenu">
+
+      <!-- Spinner initial -->
+      <div id="chargement" style="text-align:center; padding:4rem; color:var(--gris-400);">
+        <div class="spinner-border spinner-border-sm text-secondary mb-3"></div>
+        <div style="font-size:14px;">Calcul des prévisions…</div>
+      </div>
+
+      <!-- Contenu prévisions -->
+      <div id="contenu-prev" style="display:none;">
+
+        <!-- Grande carte solde projeté -->
+        <div class="prev-grande-carte" id="carte-solde">
+          <div class="prev-solde-label">Solde actuel</div>
+          <div class="prev-solde-valeur" id="prev-solde">—</div>
+          <div id="jauge-conteneur" class="jauge-fond" style="max-width:400px; margin:1rem auto .5rem;">
+            <div id="jauge-rempli" class="jauge-rempli" style="width:0%; background:#8CB827;"></div>
+          </div>
+          <div class="prev-date-fin" id="prev-date-fin"></div>
+        </div>
+
+        <!-- 4 tuiles de stats -->
+        <div class="row g-3 mb-4">
+
+          <div class="col-6 col-lg-3">
+            <div class="stat-tuile">
+              <div class="stat-tuile-icone" style="background:var(--vert-clair);">
+                <svg viewBox="0 0 16 16" fill="none" stroke="var(--vert)" stroke-width="1.75" stroke-linecap="round">
+                  <path d="M8 14V2M3 7l5-5 5 5"/>
+                </svg>
+              </div>
+              <div class="stat-tuile-label">Revenus moyens / jour</div>
+              <div class="stat-tuile-valeur" id="stat-rev-jour">—</div>
+              <div class="stat-tuile-sous">basé sur 30 jours</div>
+            </div>
+          </div>
+
+          <div class="col-6 col-lg-3">
+            <div class="stat-tuile">
+              <div class="stat-tuile-icone" style="background:var(--rouge-clair);">
+                <svg viewBox="0 0 16 16" fill="none" stroke="var(--rouge)" stroke-width="1.75" stroke-linecap="round">
+                  <path d="M8 2v12M13 9l-5 5-5-5"/>
+                </svg>
+              </div>
+              <div class="stat-tuile-label">Dépenses moyennes / jour</div>
+              <div class="stat-tuile-valeur" id="stat-dep-jour">—</div>
+              <div class="stat-tuile-sous">basé sur 30 jours</div>
+            </div>
+          </div>
+
+          <div class="col-6 col-lg-3">
+            <div class="stat-tuile">
+              <div class="stat-tuile-icone" style="background:#EEF0FF;">
+                <svg viewBox="0 0 16 16" fill="none" stroke="#5B6ADE" stroke-width="1.75" stroke-linecap="round">
+                  <rect x="2" y="3" width="12" height="11" rx="1.5"/>
+                  <path d="M5 3V1M11 3V1M2 7h12"/>
+                </svg>
+              </div>
+              <div class="stat-tuile-label">Jours avant solde nul</div>
+              <div class="stat-tuile-valeur" id="stat-jours">—</div>
+              <div class="stat-tuile-sous" id="stat-jours-sous">au rythme actuel</div>
+            </div>
+          </div>
+
+          <div class="col-6 col-lg-3">
+            <div class="stat-tuile">
+              <div class="stat-tuile-icone" style="background:var(--orange-clair);">
+                <svg viewBox="0 0 16 16" fill="none" stroke="var(--orange)" stroke-width="1.75" stroke-linecap="round">
+                  <path d="M8 2L2 13h12L8 2z"/>
+                  <path d="M8 7v3M8 12v.5"/>
+                </svg>
+              </div>
+              <div class="stat-tuile-label">Flux net / jour</div>
+              <div class="stat-tuile-valeur" id="stat-flux">—</div>
+              <div class="stat-tuile-sous" id="stat-flux-sous">revenus − dépenses</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Seuil d'alerte -->
+        <div class="seuil-bloc mb-4">
+          <div>
+            <div style="font-size:14px; font-weight:700; color:var(--gris-900); margin-bottom:4px;">
+              Seuil d'alerte
+            </div>
+            <div style="font-size:13px; color:var(--gris-400);">
+              Une alerte s'affiche quand votre solde projeté tombe sous ce montant.
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <input type="number" id="seuil-input" class="champ-input" style="width:130px; margin:0;"
+              placeholder="Ex: 200" min="0" step="10"/>
+            <button class="btn-vert" onclick="appliquerSeuil()">Appliquer</button>
+            <div id="seuil-badge" class="seuil-badge" style="display:none;">
+              <svg width="12" height="12" viewBox="0 0 16 16"><path d="M8 2L2 13h12L8 2z"/><path d="M8 7v3M8 12v.5"/></svg>
+              <span id="seuil-badge-texte"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tableau projection sur 30 jours -->
+        <div class="carte">
+          <div class="carte-entete">
+            <div class="carte-titre">Projection sur 30 jours</div>
+            <div style="font-size:12px; color:var(--gris-400);" id="proj-resume"></div>
+          </div>
+          <div class="table-conteneur">
+            <table class="table-base prev-table w-100" id="table-projection">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Jour</th>
+                  <th style="text-align:right;">Revenus estimés</th>
+                  <th style="text-align:right;">Dépenses estimées</th>
+                  <th style="text-align:right;">Solde projeté</th>
+                  <th style="text-align:center;">Statut</th>
+                </tr>
+              </thead>
+              <tbody id="corps-projection"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /contenu-prev -->
+
+      <!-- Erreur -->
+      <div id="zone-erreur" style="display:none;" class="mt-3">
+        <div class="alerte alerte-rouge">
+          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
+          <div id="texte-erreur">Impossible de charger les données.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/sidebar.js"></script>
+<script>
+  injecterSidebar('previsions');
+
+  const user = getUser();
+  let seuilAlerte = 0;
+
+  /* ── Formatage ─────────────────────────────────────── */
+  function fmt(n) {
+    const abs = Math.abs(n);
+    const str = abs.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return (n < 0 ? '-' : '') + str + ' $';
+  }
+
+  function fmtDate(d) {
+    return d.toLocaleDateString('fr-CA', { weekday: 'short', day: '2-digit', month: 'short' });
+  }
+
+  /* ── Charger les transactions ──────────────────────── */
+  async function charger() {
+    document.getElementById('chargement').style.display = 'block';
+    document.getElementById('contenu-prev').style.display = 'none';
+    document.getElementById('zone-erreur').style.display = 'none';
+
+    try {
+      const rep = await fetch(`${API_URL}/transactions/user/${user.id}`);
+      if (!rep.ok) throw new Error('Réponse serveur: ' + rep.status);
+      const transactions = await rep.json();
+
+      calculerPrevisions(transactions);
+
+    } catch (e) {
+      console.error('Erreur prévisions:', e);
+      document.getElementById('chargement').style.display = 'none';
+      document.getElementById('zone-erreur').style.display = 'block';
+      document.getElementById('texte-erreur').textContent =
+        'Impossible de charger les transactions. Vérifiez que Spring Boot est lancé.';
+    }
+  }
+
+  /* ── Calculs ───────────────────────────────────────── */
+  function calculerPrevisions(transactions) {
+    const maintenant = new Date();
+    const il30Jours  = new Date(maintenant - 30 * 86400000);
+
+    // Filtrer les 30 derniers jours
+    const recent = transactions.filter(tx => {
+      const d = new Date(tx.date || tx.createdAt);
+      return d >= il30Jours;
+    });
+
+    // Totaux sur 30 jours
+    let totalRevenus  = 0;
+    let totalDepenses = 0;
+    recent.forEach(tx => {
+      if (tx.revenu === true) totalRevenus  += (tx.amount || 0);
+      else                    totalDepenses += (tx.amount || 0);
+    });
+
+    const joursCouverts = 30;
+    const revJour  = totalRevenus  / joursCouverts;
+    const depJour  = totalDepenses / joursCouverts;
+    const fluxJour = revJour - depJour;
+
+    // Solde courant = somme totale de toutes les transactions
+    let soldeCourant = 0;
+    transactions.forEach(tx => {
+      if (tx.revenu === true) soldeCourant += (tx.amount || 0);
+      else                    soldeCourant -= (tx.amount || 0);
+    });
+
+    // Jours avant solde nul
+    let joursAvantNul = Infinity;
+    if (fluxJour < 0 && soldeCourant > 0) {
+      joursAvantNul = Math.floor(soldeCourant / Math.abs(fluxJour));
+    } else if (soldeCourant <= 0) {
+      joursAvantNul = 0;
+    }
+
+    // Date de fin projetée
+    let dateFin = null;
+    if (joursAvantNul !== Infinity) {
+      dateFin = new Date(maintenant.getTime() + joursAvantNul * 86400000);
+    }
+
+    afficherResultats({ soldeCourant, revJour, depJour, fluxJour, joursAvantNul, dateFin, transactions });
+    afficherProjection(soldeCourant, revJour, depJour, fluxJour);
+  }
+
+  function afficherResultats({ soldeCourant, revJour, depJour, fluxJour, joursAvantNul, dateFin }) {
+    // Solde valeur
+    const soldeEl = document.getElementById('prev-solde');
+    soldeEl.textContent = fmt(soldeCourant);
+    soldeEl.className   = 'prev-solde-valeur ' + (soldeCourant >= 0 ? 'positif' : 'negatif');
+
+    // Jauge (basée sur des jours — 90 jours = 100%)
+    const jours90 = 90;
+    const pctJauge = joursAvantNul === Infinity
+      ? 100
+      : Math.min((joursAvantNul / jours90) * 100, 100);
+    const couleurJauge = pctJauge > 60 ? '#8CB827' : pctJauge > 30 ? 'var(--orange)' : 'var(--rouge)';
+    document.getElementById('jauge-rempli').style.width     = pctJauge + '%';
+    document.getElementById('jauge-rempli').style.background = couleurJauge;
+
+    // Date fin
+    const dateFinEl = document.getElementById('prev-date-fin');
+    if (joursAvantNul === Infinity) {
+      dateFinEl.innerHTML = '✅ Solde excédentaire — vos revenus dépassent vos dépenses';
+    } else if (joursAvantNul === 0) {
+      dateFinEl.innerHTML = '⚠️ Votre solde est déjà <strong>négatif ou nul</strong>';
+    } else {
+      const dateStr = dateFin.toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' });
+      dateFinEl.innerHTML = `Solde estimé à zéro vers le <strong>${dateStr}</strong> (dans ${joursAvantNul} jours)`;
+    }
+
+    // Tuiles
+    document.getElementById('stat-rev-jour').textContent = fmt(revJour);
+    document.getElementById('stat-dep-jour').textContent = fmt(depJour);
+
+    const joursEl = document.getElementById('stat-jours');
+    joursEl.textContent = joursAvantNul === Infinity ? '∞' : joursAvantNul + 'j';
+    joursEl.style.color = joursAvantNul < 15 ? 'var(--rouge)' : joursAvantNul < 30 ? 'var(--orange)' : 'var(--vert)';
+
+    const fluxEl  = document.getElementById('stat-flux');
+    fluxEl.textContent  = fmt(fluxJour);
+    fluxEl.style.color  = fluxJour >= 0 ? 'var(--vert)' : 'var(--rouge)';
+    document.getElementById('stat-flux-sous').textContent = fluxJour >= 0 ? 'surplus journalier' : 'déficit journalier';
+
+    // Sous-titre topbar
+    document.getElementById('sous-titre-prev').textContent =
+      joursAvantNul === Infinity
+        ? 'Votre budget est sain 👍'
+        : `Projection sur ${joursAvantNul} jour${joursAvantNul > 1 ? 's' : ''} avant solde nul`;
+
+    document.getElementById('chargement').style.display  = 'none';
+    document.getElementById('contenu-prev').style.display = 'block';
+  }
+
+  /* ── Tableau projection ────────────────────────────── */
+  function afficherProjection(soldeCourant, revJour, depJour, fluxJour) {
+    const tbody = document.getElementById('corps-projection');
+    const jours = 30;
+    let solde   = soldeCourant;
+    let html    = '';
+    let jourCritique = null;
+
+    const joursNoms = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+
+    for (let i = 1; i <= jours; i++) {
+      const date = new Date(Date.now() + i * 86400000);
+      const dateStr = date.toLocaleDateString('fr-CA', { day: '2-digit', month: '2-digit' });
+      const jourStr = joursNoms[date.getDay()];
+
+      // Revenus & dépenses du jour (légère variation aléatoire basée sur le jour)
+      const variation = 1 + (Math.sin(i * 2.7) * 0.12); // ±12% de variation
+      const revDu  = revJour  * variation;
+      const depDu  = depJour  * variation;
+      solde += revDu - depDu;
+
+      const critique = seuilAlerte > 0 && solde < seuilAlerte && solde >= 0;
+      const negatif  = solde < 0;
+      const classe   = negatif ? 'critique' : critique ? 'alerte' : '';
+
+      if (negatif && !jourCritique) jourCritique = dateStr;
+
+      let statut = '';
+      if (negatif)  statut = `<span style="color:var(--rouge); font-weight:700;">⚠ Négatif</span>`;
+      else if (critique) statut = `<span style="color:var(--orange); font-weight:700;">⚡ Seuil</span>`;
+      else          statut = `<span style="color:var(--vert);">✓</span>`;
+
+      html += `
+        <tr class="${classe}">
+          <td>${dateStr}</td>
+          <td style="color:var(--gris-400);">${jourStr}</td>
+          <td style="text-align:right; color:var(--vert); font-family:var(--police-mono);">${fmt(revDu)}</td>
+          <td style="text-align:right; color:var(--rouge); font-family:var(--police-mono);">${fmt(depDu)}</td>
+          <td style="text-align:right; font-family:var(--police-mono); font-weight:700; color:${negatif ? 'var(--rouge)' : solde < seuilAlerte * 1.2 ? 'var(--orange)' : 'var(--gris-900)'};">${fmt(solde)}</td>
+          <td style="text-align:center;">${statut}</td>
+        </tr>`;
+    }
+
+    tbody.innerHTML = html;
+
+    const resumeEl = document.getElementById('proj-resume');
+    if (jourCritique) {
+      resumeEl.innerHTML = `<span style="color:var(--rouge);">⚠ Solde négatif prévu dès le ${jourCritique}</span>`;
+    } else if (seuilAlerte > 0) {
+      resumeEl.innerHTML = `<span style="color:var(--vert);">✓ Solde restera au-dessus de ${fmt(seuilAlerte)} sur 30 jours</span>`;
+    } else {
+      resumeEl.innerHTML = '';
+    }
+  }
+
+  /* ── Seuil d'alerte ────────────────────────────────── */
+  function appliquerSeuil() {
+    const val = parseFloat(document.getElementById('seuil-input').value);
+    if (isNaN(val) || val < 0) return;
+    seuilAlerte = val;
+
+    const badge = document.getElementById('seuil-badge');
+    if (val > 0) {
+      badge.style.display = 'inline-flex';
+      document.getElementById('seuil-badge-texte').textContent = 'Alerte à ' + fmt(val);
+    } else {
+      badge.style.display = 'none';
+    }
+
+    // Recalculer la projection uniquement (pas recharger les données)
+    charger();
+  }
+
+  /* ── Lancement ─────────────────────────────────────── */
+  charger();
+</script>
+</body>
+</html>
