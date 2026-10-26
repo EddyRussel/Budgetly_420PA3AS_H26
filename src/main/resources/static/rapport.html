@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Budgetly — Rapport</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="css/budgetly.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* Tuiles stat */
+    .stat-tuile {
+      background: var(--blanc);
+      border-radius: var(--rayon-lg);
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--ombre);
+      border: 1px solid var(--gris-200);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .stat-icone {
+      width: 48px; height: 48px;
+      border-radius: var(--rayon);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+    }
+    .stat-icone.vert  { background: #edf6d6; }
+    .stat-icone.rouge { background: #fde8e8; }
+    .stat-icone.bleu  { background: #e8f0fd; }
+    .stat-icone.orange{ background: #fef3e2; }
+    .stat-label { font-size: 12px; font-weight: 600; color: var(--gris-400); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
+    .stat-valeur { font-size: 22px; font-weight: 700; font-family: var(--police-mono); color: var(--gris-900); }
+    .stat-valeur.vert  { color: var(--vert); }
+    .stat-valeur.rouge { color: var(--rouge); }
+    .stat-valeur.bleu  { color: #3B7EF8; }
+    .stat-delta {
+      font-size: 11px; font-weight: 600; margin-top: 2px;
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+    .stat-delta.haut { color: var(--vert); }
+    .stat-delta.bas  { color: var(--rouge); }
+
+    /* Carte générique */
+    .carte {
+      background: var(--blanc);
+      border-radius: var(--rayon-lg);
+      box-shadow: var(--ombre);
+      border: 1px solid var(--gris-200);
+      overflow: hidden;
+    }
+    .carte-titre {
+      font-size: 14px; font-weight: 700; color: var(--gris-900);
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--gris-200);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .carte-corps { padding: 1.25rem; }
+
+    /* Barre catégorie */
+    .cat-ligne { margin-bottom: 12px; }
+    .cat-ligne:last-child { margin-bottom: 0; }
+    .cat-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .cat-nom { font-size: 13px; font-weight: 600; color: var(--gris-900); }
+    .cat-montant { font-size: 13px; font-weight: 700; font-family: var(--police-mono); color: var(--rouge); }
+    .cat-barre-fond { height: 6px; background: var(--gris-200); border-radius: 99px; overflow: hidden; }
+    .cat-barre-rempli { height: 100%; border-radius: 99px; background: var(--rouge); transition: width .5s ease; }
+    .cat-pct { font-size: 11px; color: var(--gris-400); margin-top: 2px; text-align: right; }
+
+    /* Comparaison mois */
+    .comp-ligne {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .6rem 0;
+      border-bottom: 1px solid var(--gris-200);
+    }
+    .comp-ligne:last-child { border-bottom: none; }
+    .comp-label { flex: 1; font-size: 13px; font-weight: 600; color: var(--gris-900); }
+    .comp-bar-zone { flex: 2; display: flex; flex-direction: column; gap: 4px; }
+    .comp-bar-row { display: flex; align-items: center; gap: 6px; }
+    .comp-bar-bg { flex: 1; height: 6px; background: var(--gris-200); border-radius: 99px; overflow: hidden; }
+    .comp-bar-fill { height: 100%; border-radius: 99px; transition: width .5s; }
+    .comp-bar-fill.ce-mois  { background: var(--vert); }
+    .comp-bar-fill.mois-prec { background: var(--gris-400); }
+    .comp-mois-label { font-size: 10px; color: var(--gris-400); width: 28px; text-align: right; }
+    .comp-montant { font-size: 12px; font-weight: 700; font-family: var(--police-mono); min-width: 80px; text-align: right; }
+    .comp-montant.vert { color: var(--vert); }
+    .comp-montant.rouge { color: var(--rouge); }
+
+    /* Sélecteur de mois */
+    .mois-selector {
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .mois-selector select {
+      font-size: 13px; font-weight: 600; border: 1px solid var(--gris-200);
+      border-radius: var(--rayon); padding: .3rem .6rem;
+      color: var(--gris-900); background: var(--blanc); cursor: pointer;
+    }
+
+    /* Légende graphique */
+    .legende { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .legende-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--gris-900); }
+    .legende-point { width: 10px; height: 10px; border-radius: 50%; }
+
+    /* État vide */
+    .vide { text-align: center; padding: 2rem; color: var(--gris-400); font-size: 14px; }
+    .vide .emoji { font-size: 32px; display: block; margin-bottom: .5rem; }
+  </style>
+</head>
+<body>
+<div id="sidebar-container"></div>
+
+<main class="main-content">
+  <div class="page-header">
+    <div>
+      <h1 class="page-titre">Rapport financier</h1>
+      <p class="page-sous-titre">Vue d'ensemble de tes finances</p>
+    </div>
+    <div class="mois-selector">
+      <label for="selectMois" style="font-size:13px;font-weight:600;color:var(--gris-400)">Mois :</label>
+      <select id="selectMois"></select>
+    </div>
+  </div>
+
+  <!-- Tuiles résumé -->
+  <div class="row g-3 mb-4" id="tuiles">
+    <div class="col-6 col-md-3">
+      <div class="stat-tuile">
+        <div class="stat-icone vert">💰</div>
+        <div>
+          <div class="stat-label">Revenus</div>
+          <div class="stat-valeur vert" id="t-revenus">—</div>
+          <div class="stat-delta" id="d-revenus"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-tuile">
+        <div class="stat-icone rouge">💸</div>
+        <div>
+          <div class="stat-label">Dépenses</div>
+          <div class="stat-valeur rouge" id="t-depenses">—</div>
+          <div class="stat-delta" id="d-depenses"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-tuile">
+        <div class="stat-icone bleu">📊</div>
+        <div>
+          <div class="stat-label">Solde net</div>
+          <div class="stat-valeur bleu" id="t-solde">—</div>
+          <div class="stat-delta" id="d-solde"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-tuile">
+        <div class="stat-icone orange">📋</div>
+        <div>
+          <div class="stat-label">Transactions</div>
+          <div class="stat-valeur" id="t-nb">—</div>
+          <div class="stat-delta" id="d-nb"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Graphique + Top dépenses -->
+  <div class="row g-3 mb-4">
+    <!-- Graphique évolution -->
+    <div class="col-lg-8">
+      <div class="carte h-100">
+        <div class="carte-titre">
+          Évolution sur 6 mois
+          <div class="legende">
+            <div class="legende-item"><div class="legende-point" style="background:var(--vert)"></div>Revenus</div>
+            <div class="legende-item"><div class="legende-point" style="background:var(--rouge)"></div>Dépenses</div>
+          </div>
+        </div>
+        <div class="carte-corps">
+          <canvas id="graphEvolution" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top dépenses par catégorie -->
+    <div class="col-lg-4">
+      <div class="carte h-100">
+        <div class="carte-titre">Top dépenses</div>
+        <div class="carte-corps" id="top-categories">
+          <div class="vide"><span class="emoji">⏳</span>Chargement…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparaison mois précédent -->
+  <div class="row g-3">
+    <div class="col-12">
+      <div class="carte">
+        <div class="carte-titre">Comparaison avec le mois précédent</div>
+        <div class="carte-corps" id="comparaison">
+          <div class="vide"><span class="emoji">⏳</span>Chargement…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="js/sidebar.js"></script>
+<script>
+injecterSidebar('rapport');
+
+const API = API_URL;
+let graphInstance = null;
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+const fmt = v => new Intl.NumberFormat('fr-CA', {style:'currency', currency:'CAD', maximumFractionDigits:0}).format(v);
+
+function getUser() {
+  const id = sessionStorage.getItem('bs_userId');
+  if (!id) { window.location.href = 'login.html'; return null; }
+  return id;
+}
+
+function clesDispos(txs) {
+  // Retourne la liste des "YYYY-MM" présents dans les transactions
+  const set = new Set();
+  txs.forEach(t => {
+    const d = new Date(t.date || t.dateTransaction);
+    if (!isNaN(d)) set.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+  });
+  return [...set].sort().reverse();
+}
+
+function nomMois(cle) {
+  const [y, m] = cle.split('-');
+  return new Date(+y, +m-1, 1).toLocaleDateString('fr-CA', {month:'long', year:'numeric'});
+}
+
+function txDuMois(txs, cle) {
+  return txs.filter(t => {
+    const d = new Date(t.date || t.dateTransaction);
+    const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    return k === cle;
+  });
+}
+
+function stats(txs) {
+  let rev = 0, dep = 0;
+  txs.forEach(t => {
+    const m = Math.abs(parseFloat(t.montant) || 0);
+    if (t.revenu === true) rev += m; else dep += m;
+  });
+  return { rev, dep, solde: rev - dep, nb: txs.length };
+}
+
+function delta(actuel, precedent, inverse = false) {
+  if (precedent === 0) return '';
+  const pct = ((actuel - precedent) / Math.abs(precedent) * 100).toFixed(0);
+  const hausse = actuel >= precedent;
+  const bon = inverse ? !hausse : hausse;
+  const fleche = hausse ? '▲' : '▼';
+  const cls = bon ? 'haut' : 'bas';
+  return `<span class="stat-delta ${cls}">${fleche} ${Math.abs(pct)}% vs mois préc.</span>`;
+}
+
+// ─── Remplir tuiles ─────────────────────────────────────────────────────────
+function remplirTuiles(s, sp) {
+  document.getElementById('t-revenus').textContent = fmt(s.rev);
+  document.getElementById('t-depenses').textContent = fmt(s.dep);
+  const soldeEl = document.getElementById('t-solde');
+  soldeEl.textContent = fmt(s.solde);
+  soldeEl.className = 'stat-valeur ' + (s.solde >= 0 ? 'vert' : 'rouge');
+  document.getElementById('t-nb').textContent = s.nb;
+
+  if (sp) {
+    document.getElementById('d-revenus').innerHTML = delta(s.rev, sp.rev);
+    document.getElementById('d-depenses').innerHTML = delta(s.dep, sp.dep, true);
+    document.getElementById('d-solde').innerHTML = delta(s.solde, sp.solde);
+    document.getElementById('d-nb').innerHTML = delta(s.nb, sp.nb);
+  }
+}
+
+// ─── Graphique 6 mois ───────────────────────────────────────────────────────
+function dessinerGraphe(txs, cles6) {
+  const labels = cles6.map(nomMois).reverse();
+  const revenus = cles6.map(k => stats(txDuMois(txs, k)).rev).reverse();
+  const depenses = cles6.map(k => stats(txDuMois(txs, k)).dep).reverse();
+
+  const ctx = document.getElementById('graphEvolution').getContext('2d');
+  if (graphInstance) graphInstance.destroy();
+
+  graphInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Revenus',
+          data: revenus,
+          backgroundColor: '#6B8F1A33',
+          borderColor: '#6B8F1A',
+          borderWidth: 2,
+          borderRadius: 6,
+        },
+        {
+          label: 'Dépenses',
+          data: depenses,
+          backgroundColor: '#E53E3E33',
+          borderColor: '#E53E3E',
+          borderWidth: 2,
+          borderRadius: 6,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: {
+          grid: { color: '#f0f0f0' },
+          ticks: {
+            font: { size: 11 },
+            callback: v => fmt(v)
+          }
+        }
+      }
+    }
+  });
+}
+
+// ─── Top dépenses par catégorie ─────────────────────────────────────────────
+function remplirTopCategories(txs) {
+  const depenses = txs.filter(t => t.revenu !== true);
+  const map = {};
+  depenses.forEach(t => {
+    const cat = t.categorie?.nom || t.categorieNom || 'Sans catégorie';
+    map[cat] = (map[cat] || 0) + Math.abs(parseFloat(t.montant) || 0);
+  });
+
+  const sorted = Object.entries(map).sort((a,b) => b[1]-a[1]).slice(0,5);
+  const total = sorted.reduce((s,[,v]) => s+v, 0);
+  const el = document.getElementById('top-categories');
+
+  if (sorted.length === 0) {
+    el.innerHTML = '<div class="vide"><span class="emoji">🎉</span>Aucune dépense ce mois</div>';
+    return;
+  }
+
+  el.innerHTML = sorted.map(([nom, montant]) => {
+    const pct = total > 0 ? (montant/total*100).toFixed(0) : 0;
+    return `
+      <div class="cat-ligne">
+        <div class="cat-info">
+          <span class="cat-nom">${nom}</span>
+          <span class="cat-montant">${fmt(montant)}</span>
+        </div>
+        <div class="cat-barre-fond">
+          <div class="cat-barre-rempli" style="width:${pct}%"></div>
+        </div>
+        <div class="cat-pct">${pct}%</div>
+      </div>`;
+  }).join('');
+}
+
+// ─── Comparaison mois précédent ─────────────────────────────────────────────
+function remplirComparaison(s, sp) {
+  const el = document.getElementById('comparaison');
+  if (!sp) {
+    el.innerHTML = '<div class="vide"><span class="emoji">📅</span>Pas assez de données pour comparer</div>';
+    return;
+  }
+
+  const lignes = [
+    { label: 'Revenus', ce: s.rev, prec: sp.rev, inverse: false },
+    { label: 'Dépenses', ce: s.dep, prec: sp.dep, inverse: true },
+    { label: 'Solde net', ce: s.solde, prec: sp.solde, inverse: false },
+    { label: 'Transactions', ce: s.nb, prec: sp.nb, inverse: false },
+  ];
+
+  const max = Math.max(...lignes.map(l => Math.max(l.ce, l.prec)));
+
+  el.innerHTML = lignes.map(l => {
+    const pce  = max > 0 ? (l.ce / max * 100).toFixed(0) : 0;
+    const pprec = max > 0 ? (l.prec / max * 100).toFixed(0) : 0;
+    const diff = l.ce - l.prec;
+    const bon = l.inverse ? diff <= 0 : diff >= 0;
+    const diffStr = diff >= 0 ? `+${fmt(diff)}` : fmt(diff);
+    const diffCls = bon ? 'vert' : 'rouge';
+    const isMontant = l.label !== 'Transactions';
+
+    return `
+      <div class="comp-ligne">
+        <div class="comp-label">${l.label}</div>
+        <div class="comp-bar-zone">
+          <div class="comp-bar-row">
+            <span class="comp-mois-label" style="font-size:9px">Ce mois</span>
+            <div class="comp-bar-bg"><div class="comp-bar-fill ce-mois" style="width:${pce}%"></div></div>
+          </div>
+          <div class="comp-bar-row">
+            <span class="comp-mois-label" style="font-size:9px">Préc.</span>
+            <div class="comp-bar-bg"><div class="comp-bar-fill mois-prec" style="width:${pprec}%"></div></div>
+          </div>
+        </div>
+        <div>
+          <div class="comp-montant ${l.ce >= 0 ? (l.label==='Dépenses'?'rouge':'vert') : 'rouge'}">${isMontant ? fmt(l.ce) : l.ce}</div>
+          <div class="comp-montant ${diffCls}" style="font-size:10px">${isMontant ? diffStr : (diff >= 0 ? '+' : '') + diff}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+async function init() {
+  const userId = getUser();
+  if (!userId) return;
+
+  let txs = [];
+  try {
+    const r = await fetch(`${API}/transactions/user/${userId}`);
+    if (!r.ok) throw new Error();
+    txs = await r.json();
+  } catch {
+    document.getElementById('top-categories').innerHTML =
+      '<div class="vide"><span class="emoji">❌</span>Erreur de chargement</div>';
+    return;
+  }
+
+  // Remplir sélecteur de mois
+  const cles = clesDispos(txs);
+  const select = document.getElementById('selectMois');
+
+  if (cles.length === 0) {
+    select.innerHTML = '<option>Aucune donnée</option>';
+    document.getElementById('top-categories').innerHTML =
+      '<div class="vide"><span class="emoji">📭</span>Aucune transaction</div>';
+    document.getElementById('comparaison').innerHTML =
+      '<div class="vide"><span class="emoji">📭</span>Aucune transaction</div>';
+    return;
+  }
+
+  select.innerHTML = cles.map(k => `<option value="${k}">${nomMois(k)}</option>`).join('');
+
+  function afficher(cleSel) {
+    const idxSel = cles.indexOf(cleSel);
+    const txMois = txDuMois(txs, cleSel);
+    const s = stats(txMois);
+
+    const clePrev = cles[idxSel + 1] || null;
+    const sp = clePrev ? stats(txDuMois(txs, clePrev)) : null;
+
+    remplirTuiles(s, sp);
+    remplirTopCategories(txMois);
+    remplirComparaison(s, sp);
+
+    // Graphe 6 mois autour du mois sélectionné
+    const debut = Math.max(0, idxSel - 5);
+    const cles6 = cles.slice(debut, idxSel + 1);
+    dessinerGraphe(txs, cles6);
+  }
+
+  select.addEventListener('change', () => afficher(select.value));
+  afficher(cles[0]); // mois le plus récent par défaut
+}
+
+init();
+</script>
+</body>
+</html>
