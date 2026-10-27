@@ -108,19 +108,27 @@
   </style>
 </head>
 <body>
-<div id="sidebar-container"></div>
+<div class="app-layout">
 
-<main class="main-content">
-  <div class="page-header">
-    <div>
-      <h1 class="page-titre">Rapport financier</h1>
-      <p class="page-sous-titre">Vue d'ensemble de tes finances</p>
-    </div>
-    <div class="mois-selector">
-      <label for="selectMois" style="font-size:13px;font-weight:600;color:var(--gris-400)">Mois :</label>
-      <select id="selectMois"></select>
-    </div>
-  </div>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar-slot"></aside>
+
+  <!-- Contenu principal -->
+  <div class="contenu-principal">
+    <header class="topbar">
+      <div>
+        <div class="topbar-titre">Rapport financier</div>
+        <div class="topbar-sous-titre">Vue d'ensemble de tes finances</div>
+      </div>
+      <div class="topbar-droite">
+        <div class="mois-selector">
+          <label for="selectMois" style="font-size:13px;font-weight:600;color:var(--gris-400)">Mois :</label>
+          <select id="selectMois"></select>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-contenu">
 
   <!-- Tuiles résumé -->
   <div class="row g-3 mb-4" id="tuiles">
@@ -205,12 +213,13 @@
         </div>
       </div>
     </div>
-  </div>
-</main>
+    </div><!-- /page-contenu -->
+  </div><!-- /contenu-principal -->
+</div><!-- /app-layout -->
 
 <script src="js/sidebar.js"></script>
 <script>
-injecterSidebar('rapport');
+injecterSidebar('rapports');
 
 const API = API_URL;
 let graphInstance = null;
@@ -250,7 +259,7 @@ function txDuMois(txs, cle) {
 function stats(txs) {
   let rev = 0, dep = 0;
   txs.forEach(t => {
-    const m = Math.abs(parseFloat(t.montant) || 0);
+    const m = Math.abs(parseFloat(t.amount ?? t.montant) || 0);
     if (t.revenu === true) rev += m; else dep += m;
   });
   return { rev, dep, solde: rev - dep, nb: txs.length };
@@ -338,8 +347,8 @@ function remplirTopCategories(txs) {
   const depenses = txs.filter(t => t.revenu !== true);
   const map = {};
   depenses.forEach(t => {
-    const cat = t.categorie?.nom || t.categorieNom || 'Sans catégorie';
-    map[cat] = (map[cat] || 0) + Math.abs(parseFloat(t.montant) || 0);
+    const cat = t.category?.name || t.categorie?.nom || t.categorieNom || 'Sans catégorie';
+    map[cat] = (map[cat] || 0) + Math.abs(parseFloat(t.amount ?? t.montant) || 0);
   });
 
   const sorted = Object.entries(map).sort((a,b) => b[1]-a[1]).slice(0,5);

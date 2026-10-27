@@ -19,7 +19,8 @@ function verifierConnexion() {
 
 /* Génère les initiales depuis le nom  */
 function getInitiales(nom) {
-  return nom.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  if (!nom || typeof nom !== 'string') return '?';
+  return nom.trim().split(/\s+/).map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?';
 }
 
 /* Déconnexion */
